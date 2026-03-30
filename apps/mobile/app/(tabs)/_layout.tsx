@@ -20,6 +20,13 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Today",
+          tabBarIcon: ({ color }) => <TabIcon emoji="🏠" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="bulletin"
+        options={{
+          title: "Now",
           tabBarIcon: ({ color }) => <TabIcon emoji="📺" color={color} />,
         }}
       />

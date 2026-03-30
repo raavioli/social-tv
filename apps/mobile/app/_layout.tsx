@@ -27,6 +27,10 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="bulletin" />
+        <Stack.Screen name="programming" />
+        <Stack.Screen name="formats" />
+        <Stack.Screen name="connect" />
       </Stack>
     </GestureHandlerRootView>
   );

@@ -11,6 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { PLATFORMS } from "../../src/constants/platforms";
+import { ChannelQuickStrip } from "../../src/components/ChannelQuickStrip";
 
 export default function ChannelsScreen() {
   const { connectedAccounts, activeChannelIndex, setActiveChannelIndex } = useAppStore();
@@ -19,6 +20,8 @@ export default function ChannelsScreen() {
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.content}>
+          {/* Global format quick-strip — access all formats from channels tab */}
+          <ChannelQuickStrip />
           <Text style={styles.heading}>My Channels 📡</Text>
           <Text style={styles.sub}>
             {connectedAccounts.length > 0

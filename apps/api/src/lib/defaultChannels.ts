@@ -1,0 +1,12 @@
+import { Channel } from "@ai-tv-news/shared";
+
+export const DEFAULT_CHANNELS: Channel[] = [
+  { id: "tech", name: "Tech", emoji: "💻", description: "AI, startups, gadgets & dev", color: "#3b82f6", colorEnd: "#6366f1", sources: ["newsapi", "reddit"], isSystem: true },
+  { id: "world", name: "World", emoji: "🌍", description: "Global news & politics", color: "#ef4444", colorEnd: "#f97316", sources: ["newsapi"], isSystem: true },
+  { id: "finance", name: "Finance", emoji: "📈", description: "Markets, crypto & economy", color: "#10b981", colorEnd: "#059669", sources: ["newsapi", "reddit"], isSystem: true },
+  { id: "science", name: "Science", emoji: "🔬", description: "Discoveries & research", color: "#8b5cf6", colorEnd: "#6d28d9", sources: ["newsapi", "reddit"], isSystem: true },
+  { id: "entertainment", name: "Entertainment", emoji: "🎬", description: "Movies, music & culture", color: "#ec4899", colorEnd: "#db2777", sources: ["newsapi", "reddit"], isSystem: true },
+  { id: "sports", name: "Sports", emoji: "⚽", description: "Scores, highlights & transfers", color: "#f59e0b", colorEnd: "#d97706", sources: ["newsapi", "reddit"], isSystem: true },
+  { id: "space", name: "Space", emoji: "🚀", description: "NASA, SpaceX & the cosmos", color: "#1e1b4b", colorEnd: "#3730a3", sources: ["newsapi", "reddit"], isSystem: true },
+  { id: "reddit_hot", name: "Reddit", emoji: "👾", description: "What the internet is buzzing about", color: "#ff4500", colorEnd: "#e03d00", sources: ["reddit"], isSystem: true },
+];

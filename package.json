@@ -1,0 +1,27 @@
+{
+  "name": "social-tv",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TV-ify your social media — all your accounts as TV channels",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "mobile": "yarn workspace @ai-tv-news/mobile start",
+    "api": "yarn workspace @ai-tv-news/api dev",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "lint": "yarn workspaces run lint",
+    "typecheck": "yarn workspaces run typecheck",
+    "test": "yarn workspaces run test"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "yarn": ">=1.22.0"
+  }
+}

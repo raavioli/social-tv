@@ -1,6 +1,7 @@
 // SocialTV — Shared types between mobile app and API server
 export * from "./bulletin";
 export * from "./tvFormats";
+export * from "./contentVerticals";
 
 export type PlatformId = "twitter" | "instagram" | "youtube" | "linkedin";
 
@@ -39,6 +40,7 @@ export interface FeedItem {
   id: string;
   channelId: string;
   platform: PlatformId;
+  verticalId?: VerticalId;
   type: "post" | "video" | "story" | "article" | "reel";
   title?: string;
   summary: string; // AI-generated summary or original text

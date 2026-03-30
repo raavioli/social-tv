@@ -4,6 +4,7 @@ import { fetchTwitterFeed } from "./adapters/TwitterAdapter";
 import { fetchInstagramFeed } from "./adapters/InstagramAdapter";
 import { fetchYouTubeFeed } from "./adapters/YouTubeAdapter";
 import { fetchLinkedInFeed } from "./adapters/LinkedInAdapter";
+import { classifyFeed } from "../ai/VerticalClassifier";
 
 const FETCHERS: Record<PlatformId, (token: string) => Promise<FeedItem[]>> = {
   twitter: fetchTwitterFeed,
@@ -33,7 +34,9 @@ export async function aggregateFeed(platforms: PlatformId[]): Promise<FeedItem[]
     })
   );
 
-  return results
+  const sorted = results
     .sort((a, b) => b.engagementScore - a.engagementScore)
     .slice(0, 20);
+
+  return classifyFeed(sorted);
 }

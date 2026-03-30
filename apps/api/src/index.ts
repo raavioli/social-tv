@@ -7,6 +7,7 @@ import { showRoutes } from "./routes/show";
 import { imageRoutes } from "./routes/images";
 import { authRoutes } from "./routes/auth";
 import { bulletinRoutes } from "./routes/bulletin";
+import { syncRoutes } from "./routes/sync";
 import { startJobs } from "./jobs";
 
 const app = Fastify({ logger: { level: process.env.NODE_ENV === "production" ? "warn" : "info" } });
@@ -21,6 +22,7 @@ await app.register(showRoutes, { prefix: "/shows" });
 await app.register(imageRoutes, { prefix: "/images" });
 await app.register(authRoutes, { prefix: "/auth" });
 await app.register(bulletinRoutes, { prefix: "/bulletin" });
+await app.register(syncRoutes, { prefix: "/sync" });
 
 startJobs();
 

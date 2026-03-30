@@ -50,7 +50,18 @@ export default function BulletinHub() {
     (f) => !recommendedFormats.includes(f)
   );
 
+  const FORMAT_ROUTES: Partial<Record<BulletinFormatId, string>> = {
+    breaking_news: "/formats/breaking_news",
+    previously_on: "/formats/previously_on",
+    live_feed: "/formats/live_feed",
+  };
+
   const launch = (formatId: BulletinFormatId) => {
+    const customRoute = FORMAT_ROUTES[formatId];
+    if (customRoute) {
+      router.push(customRoute as any);
+      return;
+    }
     router.push({
       pathname: `/bulletin/${formatId}`,
       params: { mood: mood ?? "curious", minutes: String(minutes) },

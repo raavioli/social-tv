@@ -148,14 +148,24 @@ export default function TodayScreen() {
         </View>
 
         {/* Bulletin shortcut */}
-        <TouchableOpacity
-          style={styles.bulletinBtn}
-          onPress={() => router.push("/bulletin")}
-        >
-          <LinearGradient colors={["#6c47ff", "#a855f7"]} style={styles.bulletinBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            <Text style={styles.bulletinBtnText}>📋 Daily Bulletin</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        <View style={styles.shortcutRow}>
+          <TouchableOpacity
+            style={styles.bulletinBtn}
+            onPress={() => router.push("/bulletin")}
+          >
+            <LinearGradient colors={["#6c47ff", "#a855f7"]} style={styles.bulletinBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+              <Text style={styles.bulletinBtnText}>📋 Daily Bulletin</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.prevOnBtn}
+            onPress={() => router.push("/formats/previously_on" as any)}
+          >
+            <BlurView intensity={30} tint="dark" style={styles.prevOnBtnInner}>
+              <Text style={styles.prevOnBtnText}>⏮ Previously On</Text>
+            </BlurView>
+          </TouchableOpacity>
+        </View>
 
         {/* Channel switcher arrows */}
         <View style={styles.channelSwitcher}>
@@ -267,9 +277,13 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 16 },
   loadingText: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
   scrollContent: { paddingTop: 4 },
-  bulletinBtn: { marginHorizontal: 20, borderRadius: 12, overflow: "hidden", marginBottom: 8 },
+  shortcutRow: { flexDirection: "row", marginHorizontal: 20, gap: 8, marginBottom: 8 },
+  bulletinBtn: { flex: 1, borderRadius: 12, overflow: "hidden" },
   bulletinBtnGrad: { paddingVertical: 10, alignItems: "center" },
   bulletinBtnText: { color: "#fff", fontSize: 14, fontWeight: "800" },
+  prevOnBtn: { flex: 1, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  prevOnBtnInner: { paddingVertical: 10, alignItems: "center" },
+  prevOnBtnText: { color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: "800" },
   counter: { position: "absolute", bottom: 90, alignSelf: "center", backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
   counterText: { color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: "600" },
   empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 40, gap: 16 },

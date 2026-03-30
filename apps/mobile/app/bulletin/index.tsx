@@ -54,6 +54,9 @@ export default function BulletinHub() {
     breaking_news: "/formats/breaking_news",
     previously_on: "/formats/previously_on",
     live_feed: "/formats/live_feed",
+    late_night: "/formats/late_night",
+    documentary: "/formats/documentary",
+    highlight_reel: "/formats/highlight_reel",
   };
 
   const launch = (formatId: BulletinFormatId) => {

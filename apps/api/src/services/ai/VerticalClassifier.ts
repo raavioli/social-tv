@@ -1,57 +1,64 @@
-import { FeedItem, VerticalId, CONTENT_VERTICALS } from "@social-tv/shared";
+import { FeedItem, VerticalId, CONTENT_VERTICALS, TAXONOMY, extractEntities, getAncestors, resolveVocabTerm } from "@social-tv/shared";
 
-/**
- * Classify a feed item into a content vertical.
- * Uses keyword heuristics first (fast, no API cost).
- * Falls back to AI classification for ambiguous items.
- */
 export function classifyVertical(item: FeedItem, selfHandles: string[] = []): VerticalId {
-  // Personal content check first
   if (selfHandles.length > 0 && selfHandles.some(h =>
     item.authorHandle?.toLowerCase().includes(h.toLowerCase()) ||
     item.author?.toLowerCase() === "you"
-  )) {
-    return "personal";
+  )) return "personal";
+
+  const text = [item.title, item.summary, ...(item.tags ?? [])].filter(Boolean).join(" ").toLowerCase();
+
+  // Entity signals (strongest)
+  const entities = extractEntities(text);
+  const entityVerticals = entities.flatMap(e =>
+    e.taxonomyIds.map(tid => {
+      const ancestors = getAncestors(tid);
+      return ancestors[ancestors.length - 1]?.verticalId;
+    })
+  ).filter(Boolean) as string[];
+
+  if (entityVerticals.length > 0) {
+    // Return most common entity vertical
+    const counts: Record<string, number> = {};
+    for (const v of entityVerticals) counts[v] = (counts[v] ?? 0) + 1;
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as VerticalId;
   }
 
-  const text = [item.title, item.summary, item.tags?.join(" ")].filter(Boolean).join(" ").toLowerCase();
+  // Taxonomy node matching
+  const nodeScores: Record<string, number> = {};
+  for (const node of TAXONOMY) {
+    let score = 0;
+    if (text.includes(node.label.toLowerCase())) score += 2;
+    for (const vocabId of node.vocabTerms) {
+      const resolved = resolveVocabTerm(text.split(" ").find(w => resolveVocabTerm(w) === vocabId) ?? "");
+      if (resolved === vocabId) score += 3;
+    }
+    if (score > 0) nodeScores[node.id] = score;
+  }
 
-  // Score each vertical by keyword matches
-  const scores: Record<VerticalId, number> = {} as any;
+  const bestNodeId = Object.entries(nodeScores).sort((a, b) => b[1] - a[1])[0]?.[0];
+  if (bestNodeId) {
+    const ancestors = getAncestors(bestNodeId);
+    const topLevel = ancestors[ancestors.length - 1];
+    if (topLevel?.verticalId) return topLevel.verticalId as VerticalId;
+  }
 
+  // Content vertical keyword fallback
+  const scores: Record<string, number> = {};
   for (const vertical of CONTENT_VERTICALS) {
     if (vertical.id === "personal") continue;
-    let score = 0;
     for (const kw of vertical.classifyKeywords) {
-      if (text.includes(kw)) score++;
-    }
-    // Boost if platform matches typical vertical
-    if (vertical.id === "sports" && item.tags?.some(t => ["Sports", "Football", "NBA", "Cricket"].includes(t))) score += 3;
-    if (vertical.id === "tech" && ["Dev", "AI", "Tech"].some(t => item.tags?.includes(t))) score += 3;
-    if (vertical.id === "business" && ["Career", "Finance"].some(t => item.tags?.includes(t))) score += 3;
-
-    scores[vertical.id as VerticalId] = score;
-  }
-
-  // Find highest scoring vertical
-  let best: VerticalId = "entertainment";
-  let bestScore = 0;
-  for (const [id, score] of Object.entries(scores)) {
-    if (score > bestScore) {
-      bestScore = score;
-      best = id as VerticalId;
+      if (text.includes(kw)) scores[vertical.id] = (scores[vertical.id] ?? 0) + 1;
     }
   }
+  const bestVertical = Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0];
+  if (bestVertical) return bestVertical as VerticalId;
 
-  // If no strong match, use platform heuristics
-  if (bestScore === 0) {
-    if (item.platform === "linkedin") return "business";
-    if (item.platform === "youtube") return "entertainment";
-    if (item.platform === "instagram") return "lifestyle";
-    if (item.platform === "twitter") return "tech";
-  }
-
-  return best;
+  // Platform defaults
+  if (item.platform === "linkedin") return "business";
+  if (item.platform === "youtube") return "entertainment";
+  if (item.platform === "instagram") return "lifestyle";
+  return "tech";
 }
 
 export function classifyFeed(items: FeedItem[], selfHandles: string[] = []): FeedItem[] {

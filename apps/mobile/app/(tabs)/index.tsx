@@ -17,13 +17,22 @@ import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { NewsCard } from "../../src/components/NewsCard";
+import { ChannelQuickStrip } from "../../src/components/ChannelQuickStrip";
 import { PERSONAS } from "../../src/constants/personas";
 import { PLATFORMS } from "../../src/constants/platforms";
 import { api } from "../../src/lib/api";
-import { FeedItem } from "@social-tv/shared";
+import { FeedItem, CONTENT_VERTICALS } from "@social-tv/shared";
 
 const { width: W, height: H } = Dimensions.get("window");
 const CARD_HEIGHT = H * 0.72 + 16;
+
+// Platform → vertical mapping for the Today screen
+const PLATFORM_VERTICAL_MAP: Record<string, { verticalId: string; color: string }> = {
+  twitter:   { verticalId: "tech",          color: "#6c47ff" },
+  instagram: { verticalId: "lifestyle",     color: "#10b981" },
+  youtube:   { verticalId: "entertainment", color: "#f59e0b" },
+  linkedin:  { verticalId: "business",      color: "#0A66C2" },
+};
 
 export default function TodayScreen() {
   const {
@@ -47,6 +56,14 @@ export default function TodayScreen() {
   const activeAccount = connectedAccounts[activeChannelIndex];
   const persona = PERSONAS.find((p) => p.id === settings.selectedPersonaId)!;
   const platform = activeAccount ? PLATFORMS.find((p) => p.id === activeAccount.platform) : null;
+
+  // Resolve vertical for the active platform
+  const platformVerticalHint = activeAccount
+    ? PLATFORM_VERTICAL_MAP[activeAccount.platform] ?? { verticalId: "breaking", color: "#cc0000" }
+    : null;
+  const activeVertical = platformVerticalHint
+    ? CONTENT_VERTICALS.find(v => v.id === platformVerticalHint.verticalId)
+    : null;
 
   const playTuneAnimation = () => {
     Animated.sequence([
@@ -184,6 +201,17 @@ export default function TodayScreen() {
             <Text style={styles.chBtnText}>CH{activeChannelIndex + 2} ▶</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Quick-format strip for the active channel's content vertical */}
+        {activeVertical && (
+          <ChannelQuickStrip
+            verticalId={activeVertical.id}
+            verticalColor={platformVerticalHint?.color ?? activeVertical.color}
+            verticalEmoji={activeVertical.emoji}
+            verticalName={activeVertical.name}
+            compact
+          />
+        )}
 
         <Animated.View style={[{ flex: 1 }, { opacity: tuneOpacity }]}>
           {loading ? (

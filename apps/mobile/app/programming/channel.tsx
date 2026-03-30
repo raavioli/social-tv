@@ -7,6 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { router, useLocalSearchParams } from "expo-router";
 import { CONTENT_VERTICALS, TV_FORMATS, FORMAT_VERTICAL_FIT, TVFormatId } from "@social-tv/shared";
+import { ChannelQuickStrip } from "../../src/components/ChannelQuickStrip";
 
 export default function ChannelConfigScreen() {
   const { verticalId } = useLocalSearchParams<{ verticalId: string }>();
@@ -47,6 +48,14 @@ export default function ChannelConfigScreen() {
           <Text style={styles.heroAnalogy}>{vertical.tvAnalogy}</Text>
           <Text style={styles.heroDesc}>{vertical.description}</Text>
         </LinearGradient>
+
+        {/* Quick-format strip for this channel */}
+        <ChannelQuickStrip
+          verticalId={vertical.id}
+          verticalColor={vertical.color}
+          verticalEmoji={vertical.emoji}
+          verticalName={vertical.name}
+        />
 
         <ScrollView contentContainerStyle={styles.scroll}>
           {/* Enable toggle */}

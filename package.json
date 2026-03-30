@@ -9,8 +9,8 @@
     "packages/*"
   ],
   "scripts": {
-    "mobile": "yarn workspace @ai-tv-news/mobile start",
-    "api": "yarn workspace @ai-tv-news/api dev",
+    "mobile": "yarn workspace @social-tv/mobile start",
+    "api": "yarn workspace @social-tv/api dev",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "lint": "yarn workspaces run lint",

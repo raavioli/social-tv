@@ -6,8 +6,10 @@ import {
   ScrollView,
   SafeAreaView,
   Switch,
+  TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { PersonaCard } from "../../src/components/PersonaCard";
 import { PERSONAS } from "../../src/constants/personas";
@@ -20,6 +22,27 @@ export default function SettingsScreen() {
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.heading}>Settings ⚙️</Text>
+
+          <SectionLabel label="MY PROGRAMMING" />
+          <View style={styles.card}>
+            <TouchableOpacity style={styles.row} onPress={() => router.push("/programming")}>
+              <Text style={styles.rowEmoji}>📺</Text>
+              <View style={styles.rowText}>
+                <Text style={styles.rowLabel}>My Programming</Text>
+                <Text style={styles.rowValue}>Schedule shows & TV guide</Text>
+              </View>
+              <Text style={styles.rowChevron}>›</Text>
+            </TouchableOpacity>
+            <Divider />
+            <TouchableOpacity style={styles.row} onPress={() => router.push("/programming/filters")}>
+              <Text style={styles.rowEmoji}>🎛️</Text>
+              <View style={styles.rowText}>
+                <Text style={styles.rowLabel}>Content Filters</Text>
+                <Text style={styles.rowValue}>Mute keywords · Boost sources</Text>
+              </View>
+              <Text style={styles.rowChevron}>›</Text>
+            </TouchableOpacity>
+          </View>
 
           <SectionLabel label="YOUR HOST" />
           <View style={styles.personaGrid}>
@@ -145,4 +168,5 @@ const styles = StyleSheet.create({
   rowLabel: { color: "#fff", fontSize: 15, fontWeight: "600" },
   rowValue: { color: "rgba(255,255,255,0.4)", fontSize: 12, marginTop: 2 },
   divider: { height: 1, backgroundColor: "rgba(255,255,255,0.05)", marginHorizontal: 16 },
+  rowChevron: { color: "rgba(255,255,255,0.2)", fontSize: 20, fontWeight: "300" },
 });

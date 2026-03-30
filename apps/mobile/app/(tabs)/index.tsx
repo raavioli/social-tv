@@ -147,6 +147,16 @@ export default function TodayScreen() {
           )}
         </View>
 
+        {/* Bulletin shortcut */}
+        <TouchableOpacity
+          style={styles.bulletinBtn}
+          onPress={() => router.push("/bulletin")}
+        >
+          <LinearGradient colors={["#6c47ff", "#a855f7"]} style={styles.bulletinBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+            <Text style={styles.bulletinBtnText}>📋 Daily Bulletin</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
         {/* Channel switcher arrows */}
         <View style={styles.channelSwitcher}>
           <TouchableOpacity
@@ -257,6 +267,9 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 16 },
   loadingText: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
   scrollContent: { paddingTop: 4 },
+  bulletinBtn: { marginHorizontal: 20, borderRadius: 12, overflow: "hidden", marginBottom: 8 },
+  bulletinBtnGrad: { paddingVertical: 10, alignItems: "center" },
+  bulletinBtnText: { color: "#fff", fontSize: 14, fontWeight: "800" },
   counter: { position: "absolute", bottom: 90, alignSelf: "center", backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
   counterText: { color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: "600" },
   empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 40, gap: 16 },

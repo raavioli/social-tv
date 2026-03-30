@@ -1,4 +1,5 @@
 // SocialTV — Shared types between mobile app and API server
+export * from "./bulletin";
 
 export type PlatformId = "twitter" | "instagram" | "youtube" | "linkedin";
 

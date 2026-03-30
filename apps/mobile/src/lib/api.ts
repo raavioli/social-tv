@@ -27,4 +27,10 @@ export const api = {
 
   disconnectPlatform: (platform: string) =>
     request<void>(`/auth/${platform}`, { method: "DELETE" }),
+
+  getBulletin: (body: import("@social-tv/shared").GenerateBulletinRequest) =>
+    request<import("@social-tv/shared").GeneratedBulletin>("/bulletin/generate", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };

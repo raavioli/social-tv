@@ -1,8 +1,8 @@
 import { FeedItem, PlatformId } from "@social-tv/shared";
-import { TwitterAdapter } from "../feed/adapters/TwitterAdapter";
-import { InstagramAdapter } from "../feed/adapters/InstagramAdapter";
-import { YouTubeAdapter } from "../feed/adapters/YouTubeAdapter";
-import { LinkedInAdapter } from "../feed/adapters/LinkedInAdapter";
+import { fetchTwitterFeed } from "../feed/adapters/TwitterAdapter";
+import { fetchInstagramFeed } from "../feed/adapters/InstagramAdapter";
+import { fetchYouTubeFeed } from "../feed/adapters/YouTubeAdapter";
+import { fetchLinkedInFeed } from "../feed/adapters/LinkedInAdapter";
 
 interface SyncedItem extends FeedItem {
   platforms: PlatformId[];  // platforms where this story appeared
@@ -46,10 +46,10 @@ function notifyListeners() {
 async function syncPlatform(platformId: PlatformId, token?: string): Promise<FeedItem[]> {
   try {
     switch (platformId) {
-      case "twitter":   return await TwitterAdapter.fetch(token);
-      case "instagram": return await InstagramAdapter.fetch(token);
-      case "youtube":   return await YouTubeAdapter.fetch(token);
-      case "linkedin":  return await LinkedInAdapter.fetch(token);
+      case "twitter":   return await fetchTwitterFeed(token ?? "");
+      case "instagram": return await fetchInstagramFeed(token ?? "");
+      case "youtube":   return await fetchYouTubeFeed(token ?? "");
+      case "linkedin":  return await fetchLinkedInFeed(token ?? "");
       default:          return [];
     }
   } catch {

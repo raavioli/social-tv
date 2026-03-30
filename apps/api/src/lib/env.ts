@@ -4,8 +4,8 @@ const schema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.coerce.number().default(3001),
 
-  // Database
-  DATABASE_URL: z.string().url(),
+  // Database (optional in demo mode — app runs fully on mock data without it)
+  DATABASE_URL: z.string().url().optional().default("postgresql://localhost:5432/socialtv"),
 
   // Redis
   REDIS_URL: z.string().default("redis://localhost:6379"),

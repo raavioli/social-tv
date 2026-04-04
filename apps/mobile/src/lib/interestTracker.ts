@@ -4,7 +4,7 @@
  * Stored locally in AsyncStorage, sent to API for server-side scoring.
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { InterestProfile, InterestSignal, StoryInteraction, getThesaurusEntry, resolveVocabTerm, TAXONOMY } from "@social-tv/shared";
+import { InterestProfile, InterestSignal, StoryInteraction } from "@social-tv/shared";
 
 const STORAGE_KEY = "interest_profile";
 const DECAY_FACTOR = 0.98; // score decays slightly each day so fresh behaviour matters more
@@ -97,50 +97,3 @@ function scoreTagRelevanceSync(tag: string, profile: InterestProfile): number {
   return signal?.score ?? 5;
 }
 
-/**
- * Ontology-aware scoring: uses the thesaurus RT relationships
- * to score content even when the exact tag isn't in the interest profile.
- *
- * Example: if user has high "nba" interest, content tagged "sneakers"
- * gets a boost because "sneakers" RT "nba" in the thesaurus.
- */
-export function scoreWithOntology(
-  tags: string[],
-  profile: InterestProfile,
-  moodId?: string
-): number {
-  let score = 0;
-
-  for (const tag of tags) {
-    // Direct score
-    const direct = scoreTagRelevanceSync(tag, profile);
-    score += direct;
-
-    // Thesaurus boost: find this tag's taxonomy node
-    const vocabId = resolveVocabTerm(tag);
-    if (vocabId) {
-      const node = TAXONOMY.find(n => n.vocabTerms.includes(vocabId));
-      if (node) {
-        const thesaurus = getThesaurusEntry(node.id);
-        if (thesaurus) {
-          // Mood affinity boost
-          if (moodId && thesaurus.moodAffinity.includes(moodId)) {
-            score += 0.5;
-          }
-          // Related terms partial boost (0.3x of their direct score)
-          for (const rtId of thesaurus.rt) {
-            const rtNode = TAXONOMY.find(n => n.id === rtId);
-            if (rtNode) {
-              const rtScore = rtNode.vocabTerms.reduce((acc, vId) => {
-                return acc + scoreTagRelevanceSync(vId, profile) * 0.3;
-              }, 0);
-              score += rtScore;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return Math.min(score, 10); // cap at 10
-}

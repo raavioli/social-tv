@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { PLATFORMS } from "../src/constants/platforms";
 import { api } from "../src/lib/api";
@@ -52,6 +53,11 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
   return (
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>
+        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 8 }}>
+          <TouchableOpacity onPress={() => router.back()} style={{ paddingVertical: 8, paddingRight: 16 }}>
+            <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.content}>
           <Text style={styles.heading}>Connect Accounts</Text>
           <Text style={styles.sub}>

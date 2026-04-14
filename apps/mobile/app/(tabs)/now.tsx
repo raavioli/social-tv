@@ -122,25 +122,6 @@ export default function TodayScreen() {
   const now = new Date();
   const greeting = now.getHours() < 12 ? "Good morning" : now.getHours() < 17 ? "Good afternoon" : "Good evening";
 
-  if (connectedAccounts.length === 0) {
-    return (
-      <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
-        <SafeAreaView style={styles.safe}>
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>📺</Text>
-            <Text style={styles.emptyTitle}>Welcome to SocialTV</Text>
-            <Text style={styles.emptySub}>Connect your social accounts and we'll turn your feeds into personalised TV channels.</Text>
-            <Pressable onPress={() => router.push("/connect")} style={styles.connectBtn}>
-              <LinearGradient colors={["#6c47ff", "#a855f7"]} style={styles.connectBtnGrad}>
-                <Text style={styles.connectBtnText}>Connect Accounts →</Text>
-              </LinearGradient>
-            </Pressable>
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
-    );
-  }
-
   return (
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>

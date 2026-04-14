@@ -5,11 +5,10 @@ import {
   Animated, Dimensions, FlatList,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
+// BlurView removed for Android compatibility
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
-import { NewsCard } from "../../src/components/NewsCard";
-import { Presenter } from "../../src/components/Presenter";
+import { StoryCard, PresenterNameplate, NewsTicker, ChannelIdent } from "../../src/components/broadcast";
 import { PERSONAS } from "../../src/constants/personas";
 import { api } from "../../src/lib/api";
 import { FeedItem } from "@social-tv/shared";
@@ -73,6 +72,7 @@ export default function TodayScreen() {
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const tuneAnim = useRef(new Animated.Value(1)).current;
   const channelListRef = useRef<FlatList>(null);
+  const [showIdent, setShowIdent] = useState(false);
 
   const persona = PERSONAS.find(p => p.id === settings.selectedPersonaId) ?? PERSONAS[0];
   const channel = TV_CHANNELS.find(c => c.id === activeChannel)!;
@@ -104,6 +104,7 @@ export default function TodayScreen() {
     setActiveChannel(channelId);
     setActiveCardIndex(0);
     setLoading(true);
+    setShowIdent(true);
     playTune();
   };
 
@@ -194,9 +195,10 @@ export default function TodayScreen() {
         </View>
 
         {/* Presenter */}
-        <Presenter
+        <PresenterNameplate
           emoji={persona.avatarEmoji}
           name={persona.name}
+          role="Presenter"
           line={presenterGreetings[activeChannel] ?? "Here's what's new."}
           accentColor={channel.color}
         />
@@ -227,12 +229,12 @@ export default function TodayScreen() {
             >
               {items.map((item, i) => (
                 <View key={item.id} style={{ height: CARD_HEIGHT, justifyContent: "center", paddingHorizontal: 16 }}>
-                  <NewsCard
+                  <StoryCard
                     item={item}
-                    isActive={i === activeCardIndex}
+                    rank={i + 1}
+                    channelColor={channel.color}
                     onSave={() => retainItem(item, "remember")}
-                    onFollowUp={() => retainItem(item, "follow_up")}
-                    onShare={async () => Share.share({ title: item.title ?? item.summary, url: item.url })}
+                    onSkip={() => {}}
                   />
                 </View>
               ))}
@@ -247,6 +249,22 @@ export default function TodayScreen() {
             <Text style={styles.counterText}>{activeCardIndex + 1} / {items.length}</Text>
           </View>
         )}
+        {/* News ticker at bottom */}
+        <NewsTicker
+          headlines={items.map(i => i.title ?? i.summary)}
+          accentColor={channel.color}
+          label={channel.label.toUpperCase()}
+        />
+
+        {/* Channel ident overlay */}
+        <ChannelIdent
+          channelName={channel.label}
+          channelEmoji={channel.emoji}
+          color={channel.color}
+          storyCount={(MOCK_BY_CHANNEL[activeChannel] ?? []).length}
+          visible={showIdent}
+          onComplete={() => setShowIdent(false)}
+        />
       </SafeAreaView>
     </LinearGradient>
   );

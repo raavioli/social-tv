@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, SafeAreaView, Switch,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
+// BlurView replaced with View for Android compatibility
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { PERSONAS } from "../../src/constants/personas";
@@ -227,7 +227,7 @@ export default function ControlCenterScreen() {
                 onPress={() => !editMode && router.push({ pathname: "/(tabs)/now", params: { channel: ch.id } } as any)}
                 style={styles.channelCard}
               >
-                <BlurView intensity={12} tint="dark" style={styles.channelCardInner}>
+                <View style={[styles.channelCardInner, { backgroundColor: "rgba(20,20,35,0.9)" }]}>
                   {/* Channel number */}
                   <Text style={styles.chNumber}>CH{idx + 1}</Text>
 
@@ -258,7 +258,7 @@ export default function ControlCenterScreen() {
                       <Text style={[styles.liveSmallText, { color: ch.color }]}>LIVE</Text>
                     </View>
                   )}
-                </BlurView>
+                </View>
               </Pressable>
             ))}
 
@@ -272,7 +272,7 @@ export default function ControlCenterScreen() {
                     style={[styles.channelCard, { opacity: 0.4 }]}
                     onPress={() => toggleChannel(ch.id)}
                   >
-                    <BlurView intensity={8} tint="dark" style={styles.channelCardInner}>
+                    <View style={[styles.channelCardInner, { backgroundColor: "rgba(20,20,35,0.7)" }]}>
                       <View style={[styles.addBadgeSmall, { backgroundColor: "#22c55e" }]}>
                         <Text style={styles.addBadgeText}>+</Text>
                       </View>
@@ -283,7 +283,7 @@ export default function ControlCenterScreen() {
                         <Text style={styles.chLabel}>{ch.label}</Text>
                         <Text style={styles.chStories}>{ch.stories} stories</Text>
                       </View>
-                    </BlurView>
+                    </View>
                   </Pressable>
                 ))}
               </View>
@@ -295,14 +295,14 @@ export default function ControlCenterScreen() {
             style={styles.presenterPicker}
             onPress={() => router.push("/onboarding" as any)}
           >
-            <BlurView intensity={12} tint="dark" style={styles.presenterPickerInner}>
+            <View style={[styles.presenterPickerInner, { backgroundColor: "rgba(20,20,35,0.9)" }]}>
               <Text style={styles.presenterPickerEmoji}>{persona.avatarEmoji}</Text>
               <View style={styles.presenterPickerInfo}>
                 <Text style={styles.presenterPickerTitle}>Your presenter: {persona.name}</Text>
                 <Text style={styles.presenterPickerSub}>Tap to change who delivers your news</Text>
               </View>
               <Text style={styles.presenterPickerArrow}>→</Text>
-            </BlurView>
+            </View>
           </Pressable>
 
           {/* Schedule shortcut */}
@@ -310,13 +310,13 @@ export default function ControlCenterScreen() {
             style={styles.scheduleBtn}
             onPress={() => router.push("/programming" as any)}
           >
-            <BlurView intensity={12} tint="dark" style={styles.scheduleBtnInner}>
+            <View style={[styles.scheduleBtnInner, { backgroundColor: "rgba(20,20,35,0.9)" }]}>
               <Text style={styles.scheduleBtnEmoji}>📋</Text>
               <View>
                 <Text style={styles.scheduleBtnTitle}>My Schedule</Text>
                 <Text style={styles.scheduleBtnSub}>Set up daily auto-programming</Text>
               </View>
-            </BlurView>
+            </View>
           </Pressable>
 
           <View style={{ height: 100 }} />

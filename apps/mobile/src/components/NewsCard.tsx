@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
+// BlurView removed for Android compatibility
 import { impact, selection } from "../lib/haptics";
 import Animated, {
   useSharedValue,
@@ -74,12 +74,12 @@ export const NewsCard: React.FC<NewsCardProps> = ({
 
       {/* Top bar */}
       <View style={styles.topBar}>
-        <BlurView intensity={30} tint="dark" style={styles.sourcePill}>
+        <View style={[styles.sourcePill, { backgroundColor: "rgba(0,0,0,0.6)" }]}>
           <Text style={styles.sourceText}>{sourceLabel}</Text>
-        </BlurView>
-        <BlurView intensity={30} tint="dark" style={styles.sourcePill}>
+        </View>
+        <View style={[styles.sourcePill, { backgroundColor: "rgba(0,0,0,0.6)" }]}>
           <Text style={styles.sourceText}>{timeAgo}</Text>
-        </BlurView>
+        </View>
       </View>
 
       {/* Content */}
@@ -101,7 +101,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({
         </Text>
 
         {/* Actions */}
-        <BlurView intensity={25} tint="dark" style={styles.actions}>
+        <View style={[styles.actions, { backgroundColor: "rgba(0,0,0,0.6)" }]}>
           <ActionBtn emoji="🔖" label="Save" onPress={handleSave} />
           <ActionBtn
             emoji="🔔"
@@ -119,7 +119,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({
               onShare();
             }}
           />
-        </BlurView>
+        </View>
       </View>
     </Animated.View>
   );

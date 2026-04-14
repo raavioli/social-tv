@@ -9,6 +9,7 @@ import { authRoutes } from "./routes/auth";
 import { bulletinRoutes } from "./routes/bulletin";
 import { syncRoutes } from "./routes/sync";
 import { contentRoutes } from "./routes/content";
+import { visualRoutes } from "./routes/visuals";
 import { startJobs } from "./jobs";
 
 const app = Fastify({ logger: { level: process.env.NODE_ENV === "production" ? "warn" : "info" } });
@@ -25,6 +26,7 @@ await app.register(authRoutes, { prefix: "/auth" });
 await app.register(bulletinRoutes, { prefix: "/bulletin" });
 await app.register(syncRoutes, { prefix: "/sync" });
 await app.register(contentRoutes, { prefix: "/content" });
+await app.register(visualRoutes, { prefix: "/visuals" });
 
 startJobs();
 

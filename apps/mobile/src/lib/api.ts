@@ -54,4 +54,11 @@ export const api = {
     if (limit) params.set("limit", String(limit));
     return request<any>(`/content/mood?${params}`);
   },
+
+  getVisualFeed: (platforms?: string[], limit?: number) => {
+    const params = new URLSearchParams();
+    if (platforms?.length) params.set("platforms", platforms.join(","));
+    if (limit) params.set("limit", String(limit));
+    return request<any>(`/visuals/feed?${params}`);
+  },
 };

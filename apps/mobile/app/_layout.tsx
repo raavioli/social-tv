@@ -9,17 +9,21 @@ export default function RootLayout() {
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
   const updateSettings = useAppStore((s) => s.updateSettings);
   const addAccount = useAppStore((s) => s.addAccount);
+  const reorderCustomChannels = useAppStore((s) => s.reorderCustomChannels);
 
   useEffect(() => {
     // Restore persisted state
-    AsyncStorage.multiGet(["onboarding_done", "settings", "retained", "accounts"]).then(
+    AsyncStorage.multiGet(["onboarding_done", "settings", "retained", "accounts", "customChannels"]).then(
       (pairs) => {
-        const [onboarding, settings, retained, accounts] = pairs;
+        const [onboarding, settings, retained, accounts, customChannels] = pairs;
         if (onboarding[1] === "true") completeOnboarding();
         if (settings[1]) updateSettings(JSON.parse(settings[1]));
         if (accounts[1]) {
           const parsed = JSON.parse(accounts[1]);
           parsed.forEach((a: any) => addAccount(a));
+        }
+        if (customChannels[1]) {
+          reorderCustomChannels(JSON.parse(customChannels[1]));
         }
       }
     );
@@ -33,6 +37,7 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="connect" />
+        <Stack.Screen name="channel-creator" />
       </Stack>
     </View>
   );

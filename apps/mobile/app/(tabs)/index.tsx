@@ -19,17 +19,16 @@ const MOODS = [
   { id: "stressed",  emoji: "🫠", label: "Stressed",  color: "#ef4444" },
 ];
 
-// Topic channels the user controls
-const DEFAULT_CHANNELS = [
-  { id: "for_you",       emoji: "⭐", label: "For You",       color: "#6c47ff", stories: 12, topStory: "Your AI post is going viral — 2.4K likes" },
-  { id: "tech",          emoji: "💻", label: "Tech & AI",      color: "#3b82f6", stories: 15, topStory: "React Native 0.78 ships new architecture" },
-  { id: "trending",      emoji: "🔥", label: "Trending",       color: "#ef4444", stories: 8,  topStory: "OpenAI announces GPT-5" },
-  { id: "entertainment", emoji: "🎭", label: "Entertainment",  color: "#f59e0b", stories: 10, topStory: "New music video just dropped" },
-  { id: "business",      emoji: "💼", label: "Business",       color: "#0ea5e9", stories: 7,  topStory: "Markets surge as Fed signals rate pause" },
-  { id: "sports",        emoji: "🏆", label: "Sports",         color: "#22c55e", stories: 6,  topStory: "Champions League semi-final results" },
-  { id: "lifestyle",     emoji: "🌿", label: "Lifestyle",      color: "#10b981", stories: 9,  topStory: "Morning routine that changed everything" },
-  { id: "your_updates",  emoji: "📊", label: "Your Updates",   color: "#8b5cf6", stories: 5,  topStory: "15 profile views this week" },
-];
+// Placeholder story data for channels
+const CHANNEL_STORIES: Record<string, { stories: number; topStory: string }> = {
+  "ch-foryou": { stories: 12, topStory: "Your AI post is going viral — 2.4K likes" },
+  "ch-tech": { stories: 15, topStory: "React Native 0.78 ships new architecture" },
+  "ch-trending": { stories: 8, topStory: "OpenAI announces GPT-5" },
+  "ch-entertainment": { stories: 10, topStory: "New music video just dropped" },
+  "ch-business": { stories: 7, topStory: "Markets surge as Fed signals rate pause" },
+  "ch-myupdates": { stories: 5, topStory: "15 profile views this week" },
+};
+const DEFAULT_STORY = { stories: 3, topStory: "New stories incoming..." };
 
 // Quick programme formats
 const QUICK_PROGRAMMES = [
@@ -50,32 +49,30 @@ function getGreeting() {
 }
 
 export default function DirectorsDeskScreen() {
-  const { settings } = useAppStore();
+  const { settings, customChannels, reorderCustomChannels } = useAppStore();
+  const channels = customChannels.filter(c => c.enabled).sort((a, b) => a.position - b.position);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [activeChannelIdx, setActiveChannelIdx] = useState(0);
   const [editMode, setEditMode] = useState(false);
-  const [channels, setChannels] = useState(DEFAULT_CHANNELS);
 
   const persona = PERSONAS.find(p => p.id === settings.selectedPersonaId) ?? PERSONAS[0];
   const greeting = getGreeting();
-  const activeChannel = channels[activeChannelIdx];
+  const activeChannel = channels[activeChannelIdx] ?? channels[0];
+  const activeStory = activeChannel ? (CHANNEL_STORIES[activeChannel.id] ?? DEFAULT_STORY) : DEFAULT_STORY;
 
   const moveChannel = (idx: number, dir: "up" | "down") => {
+    const sorted = [...channels];
     if (dir === "up" && idx > 0) {
-      setChannels(prev => {
-        const next = [...prev];
-        [next[idx], next[idx - 1]] = [next[idx - 1], next[idx]];
-        return next;
-      });
+      [sorted[idx], sorted[idx - 1]] = [sorted[idx - 1], sorted[idx]];
       if (activeChannelIdx === idx) setActiveChannelIdx(idx - 1);
-    } else if (dir === "down" && idx < channels.length - 1) {
-      setChannels(prev => {
-        const next = [...prev];
-        [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
-        return next;
-      });
+    } else if (dir === "down" && idx < sorted.length - 1) {
+      [sorted[idx], sorted[idx + 1]] = [sorted[idx + 1], sorted[idx]];
       if (activeChannelIdx === idx) setActiveChannelIdx(idx + 1);
+    } else {
+      return;
     }
+    const reordered = sorted.map((ch, i) => ({ ...ch, position: i }));
+    reorderCustomChannels(reordered);
   };
 
   return (
@@ -111,12 +108,12 @@ export default function DirectorsDeskScreen() {
                   <View style={[styles.liveDot, { backgroundColor: activeChannel.color }]} />
                   <Text style={styles.liveLabel}>ON AIR</Text>
                 </View>
-                <Text style={styles.liveChannelName}>{activeChannel.emoji} {activeChannel.label}</Text>
+                <Text style={styles.liveChannelName}>{activeChannel.emoji} {activeChannel.name}</Text>
               </View>
 
               {/* Top story preview */}
-              <Text style={styles.liveHeadline}>{activeChannel.topStory}</Text>
-              <Text style={styles.liveStoryCount}>{activeChannel.stories} stories ready</Text>
+              <Text style={styles.liveHeadline}>{activeStory.topStory}</Text>
+              <Text style={styles.liveStoryCount}>{activeStory.stories} stories ready</Text>
 
               {/* GO LIVE button */}
               <LinearGradient colors={[activeChannel.color, activeChannel.color + "cc"]} style={styles.goLiveBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
@@ -136,7 +133,7 @@ export default function DirectorsDeskScreen() {
                   style={[styles.switcherBtn, isActive && { borderColor: ch.color, backgroundColor: ch.color + "15" }]}
                 >
                   <Text style={styles.switcherEmoji}>{ch.emoji}</Text>
-                  <Text style={[styles.switcherLabel, isActive && { color: ch.color }]}>{ch.label}</Text>
+                  <Text style={[styles.switcherLabel, isActive && { color: ch.color }]}>{ch.name}</Text>
                   {isActive && <View style={[styles.switcherDot, { backgroundColor: ch.color }]} />}
                 </Pressable>
               );
@@ -202,8 +199,8 @@ export default function DirectorsDeskScreen() {
 
                 {/* Info */}
                 <View style={styles.chInfo}>
-                  <Text style={styles.chName}>{ch.label}</Text>
-                  <Text style={styles.chPreview} numberOfLines={1}>{ch.topStory}</Text>
+                  <Text style={styles.chName}>{ch.name}</Text>
+                  <Text style={styles.chPreview} numberOfLines={1}>{(CHANNEL_STORIES[ch.id] ?? DEFAULT_STORY).topStory}</Text>
                 </View>
 
                 {editMode ? (
@@ -217,7 +214,7 @@ export default function DirectorsDeskScreen() {
                   </View>
                 ) : (
                   <View style={styles.chMeta}>
-                    <Text style={[styles.chCount, { color: ch.color }]}>{ch.stories}</Text>
+                    <Text style={[styles.chCount, { color: ch.color }]}>{(CHANNEL_STORIES[ch.id] ?? DEFAULT_STORY).stories}</Text>
                     <View style={[styles.chLive, { backgroundColor: ch.color + "20" }]}>
                       <View style={[styles.chLiveDot, { backgroundColor: ch.color }]} />
                     </View>
@@ -225,6 +222,14 @@ export default function DirectorsDeskScreen() {
                 )}
               </Pressable>
             ))}
+
+            {/* New Channel button */}
+            <Pressable style={styles.newChannelBtn} onPress={() => router.push("/channel-creator" as any)}>
+              <LinearGradient colors={["rgba(108,71,255,0.15)", "rgba(108,71,255,0.05)"]} style={styles.newChannelBtnGrad}>
+                <Text style={styles.newChannelPlus}>+</Text>
+                <Text style={styles.newChannelText}>Create New Channel</Text>
+              </LinearGradient>
+            </Pressable>
           </View>
 
           {/* ── BOTTOM SHORTCUTS ── */}
@@ -316,6 +321,12 @@ const styles = StyleSheet.create({
   reorderBtns: { flexDirection: "row", gap: 6 },
   reorderBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: "rgba(255,255,255,0.06)", alignItems: "center", justifyContent: "center" },
   reorderText: { color: "rgba(255,255,255,0.4)", fontSize: 12 },
+
+  // New channel button
+  newChannelBtn: { marginTop: 6, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: "rgba(108,71,255,0.2)", borderStyle: "dashed" },
+  newChannelBtnGrad: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14 },
+  newChannelPlus: { color: "#6c47ff", fontSize: 20, fontWeight: "700" },
+  newChannelText: { color: "#6c47ff", fontSize: 13, fontWeight: "800" },
 
   // Bottom shortcuts
   shortcuts: { flexDirection: "row", justifyContent: "center", gap: 20, marginTop: 20, paddingHorizontal: 16 },

@@ -37,6 +37,31 @@ export interface PinnedSource {
   boosted: boolean;
 }
 
+export interface CustomChannel {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+  topics: string[];
+  keywords: string[];
+  muteKeywords: string[];
+  people: string[];
+  platforms: string[];
+  mood: string | null;
+  sortBy: "relevance" | "recent" | "engagement";
+  enabled: boolean;
+  position: number;
+}
+
+const DEFAULT_CUSTOM_CHANNELS: CustomChannel[] = [
+  { id: "ch-foryou", name: "For You", emoji: "⭐", color: "#6c47ff", topics: [], keywords: [], muteKeywords: [], people: [], platforms: [], mood: null, sortBy: "relevance", enabled: true, position: 0 },
+  { id: "ch-tech", name: "Tech & AI", emoji: "💻", color: "#3b82f6", topics: ["tech", "ai", "programming", "software"], keywords: ["AI", "GPT", "React", "coding", "developer"], muteKeywords: [], people: [], platforms: [], mood: null, sortBy: "relevance", enabled: true, position: 1 },
+  { id: "ch-trending", name: "Trending", emoji: "🔥", color: "#ef4444", topics: ["viral", "trending"], keywords: [], muteKeywords: [], people: [], platforms: [], mood: null, sortBy: "engagement", enabled: true, position: 2 },
+  { id: "ch-entertainment", name: "Entertainment", emoji: "🎭", color: "#f59e0b", topics: ["entertainment", "music", "celebrity"], keywords: [], muteKeywords: [], people: [], platforms: [], mood: null, sortBy: "recent", enabled: true, position: 3 },
+  { id: "ch-business", name: "Business", emoji: "💼", color: "#0ea5e9", topics: ["business", "finance", "career"], keywords: [], muteKeywords: [], people: [], platforms: [], mood: null, sortBy: "relevance", enabled: true, position: 4 },
+  { id: "ch-myupdates", name: "My Updates", emoji: "📊", color: "#8b5cf6", topics: [], keywords: [], muteKeywords: [], people: ["@you"], platforms: [], mood: null, sortBy: "recent", enabled: true, position: 5 },
+];
+
 interface AppState {
   // Connected accounts (TV channels)
   connectedAccounts: ConnectedAccount[];
@@ -83,6 +108,13 @@ interface AppState {
   addPinnedSource: (source: Omit<PinnedSource, "id">) => void;
   removePinnedSource: (id: string) => void;
   toggleSourceBoost: (id: string) => void;
+
+  // Custom channels
+  customChannels: CustomChannel[];
+  addCustomChannel: (channel: CustomChannel) => void;
+  updateCustomChannel: (id: string, updates: Partial<CustomChannel>) => void;
+  removeCustomChannel: (id: string) => void;
+  reorderCustomChannels: (channels: CustomChannel[]) => void;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -246,4 +278,33 @@ export const useAppStore = create<AppState>((set, get) => ({
         p.id === id ? { ...p, boosted: !p.boosted } : p
       ),
     })),
+
+  // Custom channels
+  customChannels: DEFAULT_CUSTOM_CHANNELS,
+
+  addCustomChannel: (channel) =>
+    set((s) => {
+      const next = [...s.customChannels, channel];
+      AsyncStorage.setItem("customChannels", JSON.stringify(next));
+      return { customChannels: next };
+    }),
+
+  updateCustomChannel: (id, updates) =>
+    set((s) => {
+      const next = s.customChannels.map((c) => c.id === id ? { ...c, ...updates } : c);
+      AsyncStorage.setItem("customChannels", JSON.stringify(next));
+      return { customChannels: next };
+    }),
+
+  removeCustomChannel: (id) =>
+    set((s) => {
+      const next = s.customChannels.filter((c) => c.id !== id);
+      AsyncStorage.setItem("customChannels", JSON.stringify(next));
+      return { customChannels: next };
+    }),
+
+  reorderCustomChannels: (channels) => {
+    AsyncStorage.setItem("customChannels", JSON.stringify(channels));
+    set({ customChannels: channels });
+  },
 }));

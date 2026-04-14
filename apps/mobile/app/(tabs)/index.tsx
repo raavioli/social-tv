@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable,
   SafeAreaView, Animated, Dimensions, Image,
@@ -60,6 +60,36 @@ export default function DirectorsDeskScreen() {
   const activeChannel = channels[activeChannelIdx] ?? channels[0];
   const activeStory = activeChannel ? (CHANNEL_STORIES[activeChannel.id] ?? DEFAULT_STORY) : DEFAULT_STORY;
 
+  // Presenter
+  const floatAnim = useRef(new Animated.Value(0)).current;
+  const waveAnims = useRef(Array.from({length: 12}, () => new Animated.Value(4))).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, { toValue: -6, duration: 2000, useNativeDriver: true }),
+        Animated.timing(floatAnim, { toValue: 0, duration: 2000, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  useEffect(() => {
+    const anims = waveAnims.map((anim, i) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, { toValue: 4 + Math.random() * 14, duration: 300 + i * 50, useNativeDriver: false }),
+          Animated.timing(anim, { toValue: 4, duration: 300 + i * 50, useNativeDriver: false }),
+        ])
+      )
+    );
+    anims.forEach(a => a.start());
+    return () => anims.forEach(a => a.stop());
+  }, []);
+
+  const presenterLine = selectedMood
+    ? `${MOODS.find(m => m.id === selectedMood)?.emoji} Tuning your station for a ${selectedMood} vibe.`
+    : `Your station is ready. What are we watching?`;
+
   const moveChannel = (idx: number, dir: "up" | "down") => {
     const sorted = [...channels];
     if (dir === "up" && idx > 0) {
@@ -95,6 +125,30 @@ export default function DirectorsDeskScreen() {
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* ── PRESENTER ── */}
+          <Pressable
+            style={styles.presenterSection}
+            onPress={() => router.push("/onboarding" as any)}
+          >
+            <View style={styles.presenterRow}>
+              <Animated.View style={[styles.presenterAvatar, { backgroundColor: persona.accentColor + "20", transform: [{ translateY: floatAnim }] }]}>
+                <Text style={styles.presenterAvatarEmoji}>{persona.avatarEmoji}</Text>
+              </Animated.View>
+              <View style={styles.presenterInfo}>
+                <Text style={styles.presenterName}>{persona.name}</Text>
+                <Text style={styles.presenterLine}>{presenterLine}</Text>
+              </View>
+            </View>
+            <View style={styles.waveRow}>
+              {waveAnims.map((h, i) => (
+                <Animated.View
+                  key={i}
+                  style={[styles.waveBar, { height: h, backgroundColor: persona.accentColor + "50" }]}
+                />
+              ))}
+            </View>
+          </Pressable>
 
           {/* ── LIVE PREVIEW ── */}
           <Pressable
@@ -268,6 +322,17 @@ const styles = StyleSheet.create({
   editBtnActive: { backgroundColor: "rgba(108,71,255,0.3)", borderColor: "#6c47ff" },
   editBtnText: { color: "rgba(255,255,255,0.7)", fontSize: 14 },
   presenterChip: { fontSize: 28 },
+
+  // Presenter
+  presenterSection: { marginHorizontal: 16, marginTop: 12, padding: 14, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.03)", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  presenterRow: { flexDirection: "row", alignItems: "center", gap: 14 },
+  presenterAvatar: { width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center" },
+  presenterAvatarEmoji: { fontSize: 30 },
+  presenterInfo: { flex: 1 },
+  presenterName: { color: "#fff", fontSize: 14, fontWeight: "800" },
+  presenterLine: { color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 18, marginTop: 2 },
+  waveRow: { flexDirection: "row", alignItems: "flex-end", gap: 2, height: 18, marginTop: 10, paddingHorizontal: 4 },
+  waveBar: { width: 3, borderRadius: 2, minHeight: 4 },
 
   // Live Preview
   livePreview: { marginHorizontal: 16, marginTop: 16, borderRadius: 20, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },

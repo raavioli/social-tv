@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
-import { Persona } from "@ai-tv-news/shared";
+import { impact } from "../lib/haptics";
+import { Persona } from "@social-tv/shared";
 
 interface PersonaCardProps {
   persona: Persona;
@@ -16,7 +16,7 @@ export const PersonaCard: React.FC<PersonaCardProps> = ({
   onSelect,
 }) => {
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact("medium");
     onSelect();
   };
 

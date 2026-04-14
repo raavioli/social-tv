@@ -1,4 +1,4 @@
-import { Channel } from "@ai-tv-news/shared";
+import { Channel } from "@social-tv/shared";
 
 export const DEFAULT_CHANNELS: Channel[] = [
   { id: "tech", name: "Tech", emoji: "💻", description: "AI, startups, gadgets & dev", color: "#3b82f6", colorEnd: "#6366f1", sources: ["newsapi", "reddit"], isSystem: true },

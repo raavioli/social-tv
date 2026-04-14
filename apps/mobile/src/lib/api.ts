@@ -33,4 +33,25 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+
+  getTop10: (platforms?: string[], mood?: string) => {
+    const params = new URLSearchParams();
+    if (platforms?.length) params.set("platforms", platforms.join(","));
+    if (mood) params.set("mood", mood);
+    return request<any>(`/content/top10?${params}`);
+  },
+
+  getFriendsFeed: (platforms?: string[], handles?: string[]) => {
+    const params = new URLSearchParams();
+    if (platforms?.length) params.set("platforms", platforms.join(","));
+    if (handles?.length) params.set("handles", handles.join(","));
+    return request<any>(`/content/friends?${params}`);
+  },
+
+  getMoodFeed: (mood: string, platforms?: string[], limit?: number) => {
+    const params = new URLSearchParams({ mood });
+    if (platforms?.length) params.set("platforms", platforms.join(","));
+    if (limit) params.set("limit", String(limit));
+    return request<any>(`/content/mood?${params}`);
+  },
 };

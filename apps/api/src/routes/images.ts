@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from "fastify";
 import { generateAiImage, buildImagePrompt } from "../services/ai/ImageGenerator";
-import { ApiResponse } from "@ai-tv-news/shared";
+import { ApiResponse } from "@social-tv/shared";
 
 export const imageRoutes: FastifyPluginAsync = async (app) => {
   app.post<{ Body: { prompt: string; title?: string; tags?: string[] } }>(

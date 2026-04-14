@@ -15,7 +15,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { router, useLocalSearchParams } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { impact } from "../../src/lib/haptics";
 import { MoodId, BulletinStory } from "@social-tv/shared";
 import { MOODS } from "../../src/constants/moods";
 import { api } from "../../src/lib/api";
@@ -109,7 +109,7 @@ export default function HundredInHundred() {
   };
 
   const handleSave = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact("light");
     const story = stories[current];
     setSaved((s) => new Set(s).add(current));
     recordInteraction({ storyId: story.feedItemId, tags: story.tags, platform: story.platform, type: "save", timestamp: new Date().toISOString() });

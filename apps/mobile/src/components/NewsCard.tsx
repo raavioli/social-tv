@@ -9,14 +9,14 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
-import * as Haptics from "expo-haptics";
+import { impact, selection } from "../lib/haptics";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   interpolate,
 } from "react-native-reanimated";
-import { FeedItem } from "@ai-tv-news/shared";
+import { FeedItem } from "@social-tv/shared";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
@@ -49,11 +49,11 @@ export const NewsCard: React.FC<NewsCardProps> = ({
   }));
 
   const handleSave = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact("medium");
     onSave();
   };
 
-  const sourceLabel = item.source.toUpperCase();
+  const sourceLabel = (item.source ?? item.platform ?? "").toUpperCase();
   const timeAgo = getTimeAgo(item.publishedAt);
 
   return (
@@ -84,9 +84,9 @@ export const NewsCard: React.FC<NewsCardProps> = ({
 
       {/* Content */}
       <View style={styles.content}>
-        {item.tags.length > 0 && (
+        {(item.tags ?? []).length > 0 && (
           <View style={styles.tags}>
-            {item.tags.slice(0, 3).map((tag) => (
+            {(item.tags ?? []).slice(0, 3).map((tag) => (
               <Text key={tag} style={styles.tag}>
                 #{tag}
               </Text>
@@ -107,7 +107,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({
             emoji="🔔"
             label="Follow Up"
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              impact("light");
               onFollowUp();
             }}
           />
@@ -115,7 +115,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({
             emoji="↗️"
             label="Share"
             onPress={() => {
-              Haptics.selectionAsync();
+              selection();
               onShare();
             }}
           />

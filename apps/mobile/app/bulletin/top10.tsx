@@ -16,7 +16,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { router, useLocalSearchParams } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { impact } from "../../src/lib/haptics";
 import { MoodId, BulletinStory } from "@social-tv/shared";
 import { MOODS, BULLETIN_FORMATS } from "../../src/constants/moods";
 import { api } from "../../src/lib/api";
@@ -68,7 +68,7 @@ export default function TopN() {
   };
 
   const handleSave = (story: BulletinStory) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact("medium");
     setSaved((s) => new Set(s).add(story.feedItemId));
     recordInteraction({ storyId: story.feedItemId, tags: story.tags, platform: story.platform, type: "save", timestamp: new Date().toISOString() });
   };

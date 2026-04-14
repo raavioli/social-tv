@@ -1,4 +1,4 @@
-import { FeedItem, Channel } from "@ai-tv-news/shared";
+import { FeedItem, Channel } from "@social-tv/shared";
 import { env } from "../../../lib/env";
 
 const SUBREDDIT_MAP: Record<string, string[]> = {

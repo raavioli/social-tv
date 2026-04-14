@@ -7,7 +7,7 @@ import {
   Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
+import { impact } from "../lib/haptics";
 import { MoodId } from "@social-tv/shared";
 import { MOODS } from "../constants/moods";
 
@@ -32,7 +32,7 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
           <TouchableOpacity
             key={mood.id}
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              impact("medium");
               onSelect(mood.id);
             }}
             activeOpacity={0.8}

@@ -8,14 +8,19 @@ import { useAppStore } from "../src/store/useAppStore";
 export default function RootLayout() {
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
   const updateSettings = useAppStore((s) => s.updateSettings);
+  const addAccount = useAppStore((s) => s.addAccount);
 
   useEffect(() => {
     // Restore persisted state
-    AsyncStorage.multiGet(["onboarding_done", "settings", "retained"]).then(
+    AsyncStorage.multiGet(["onboarding_done", "settings", "retained", "accounts"]).then(
       (pairs) => {
-        const [onboarding, settings, retained] = pairs;
+        const [onboarding, settings, retained, accounts] = pairs;
         if (onboarding[1] === "true") completeOnboarding();
         if (settings[1]) updateSettings(JSON.parse(settings[1]));
+        if (accounts[1]) {
+          const parsed = JSON.parse(accounts[1]);
+          parsed.forEach((a: any) => addAccount(a));
+        }
       }
     );
   }, []);

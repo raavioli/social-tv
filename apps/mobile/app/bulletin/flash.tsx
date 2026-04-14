@@ -16,7 +16,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { router, useLocalSearchParams } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { impact, selection } from "../../src/lib/haptics";
 import { useAppStore } from "../../src/store/useAppStore";
 import { MOODS } from "../../src/constants/moods";
 import { api } from "../../src/lib/api";
@@ -114,13 +114,13 @@ export default function FlashBriefing() {
   };
 
   const handleSave = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact("medium");
     const story = stories[current];
     recordInteraction({ storyId: story.feedItemId, tags: story.tags, platform: story.platform, type: "save", timestamp: new Date().toISOString() });
   };
 
   const handleSkip = () => {
-    Haptics.selectionAsync();
+    selection();
     const story = stories[current];
     recordInteraction({ storyId: story.feedItemId, tags: story.tags, platform: story.platform, type: "skip", timestamp: new Date().toISOString() });
     advance();

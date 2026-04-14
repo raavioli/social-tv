@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
+import { selection } from "../lib/haptics";
 import { AVAILABLE_MINUTES } from "../constants/moods";
 
 interface TimePickerProps {
@@ -29,7 +29,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({ selected, onSelect }) =>
           <TouchableOpacity
             key={min}
             onPress={() => {
-              Haptics.selectionAsync();
+              selection();
               onSelect(min);
             }}
             activeOpacity={0.8}

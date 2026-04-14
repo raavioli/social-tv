@@ -1,8 +1,8 @@
 import React from "react";
 import { Text, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
-import { Channel } from "@ai-tv-news/shared";
+import { selection } from "../lib/haptics";
+import { Channel } from "@social-tv/shared";
 
 interface ChannelPillProps {
   channel: Channel;
@@ -16,7 +16,7 @@ export const ChannelPill: React.FC<ChannelPillProps> = ({
   onToggle,
 }) => {
   const handlePress = () => {
-    Haptics.selectionAsync();
+    selection();
     onToggle();
   };
 

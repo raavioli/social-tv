@@ -15,7 +15,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Haptics from "expo-haptics";
+import { selection } from "../../src/lib/haptics";
 import { BulletinRule, BulletinSchedule, DayOfWeek, MoodId, BulletinFormatId } from "@social-tv/shared";
 import { MOODS, BULLETIN_FORMATS, TIME_SLOTS, AVAILABLE_MINUTES } from "../../src/constants/moods";
 
@@ -50,7 +50,7 @@ export default function BulletinScheduler() {
   };
 
   const toggleRule = (id: string) => {
-    Haptics.selectionAsync();
+    selection();
     save(rules.map((r) => r.id === id ? { ...r, enabled: !r.enabled } : r));
   };
 

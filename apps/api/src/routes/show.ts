@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { aggregateFeed } from "../services/feed/FeedAggregator";
 import { generateScript } from "../services/ai/ScriptGenerator";
-import { ApiResponse, DailyShow, GenerateShowRequest } from "@ai-tv-news/shared";
+import { ApiResponse, DailyShow, GenerateShowRequest } from "@social-tv/shared";
 import { z } from "zod";
 
 // In-memory cache for demo (replace with DB in production)

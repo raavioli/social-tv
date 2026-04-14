@@ -1,6 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
-import { FeedItem, ShowSegment, PersonaId } from "@ai-tv-news/shared";
+import { FeedItem, ShowSegment, PersonaId } from "@social-tv/shared";
 import { env } from "../../lib/env";
 
 const PERSONA_PROMPTS: Record<PersonaId, string> = {

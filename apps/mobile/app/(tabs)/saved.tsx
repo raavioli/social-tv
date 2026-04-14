@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAppStore } from "../../src/store/useAppStore";
-import { RetainedItem } from "@ai-tv-news/shared";
+import { RetainedItem } from "@social-tv/shared";
 
 const TYPE_CONFIG = {
   remember: { emoji: "🔖", label: "Saved", color: "#6c47ff" },

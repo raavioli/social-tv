@@ -1,4 +1,4 @@
-import { Channel } from "@ai-tv-news/shared";
+import { Channel } from "@social-tv/shared";
 
 export const DEFAULT_CHANNELS: Channel[] = [
   {

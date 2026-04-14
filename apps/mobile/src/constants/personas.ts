@@ -1,4 +1,4 @@
-import { Persona } from "@ai-tv-news/shared";
+import { Persona } from "@social-tv/shared";
 
 export const PERSONAS: Persona[] = [
   {

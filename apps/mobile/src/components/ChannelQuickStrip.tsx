@@ -20,6 +20,7 @@ const FORMAT_ROUTES: Record<string, string> = {
   late_night:         "/formats/late_night",
   documentary:        "/formats/documentary",
   highlight_reel:     "/formats/highlight_reel",
+  countdown:          "/formats/top10_quick",
 };
 
 const UNIVERSAL_QUICK_ACTIONS: QuickAction[] = [

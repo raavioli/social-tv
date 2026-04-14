@@ -121,6 +121,9 @@ export default function HundredInHundred() {
     return (
       <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
         <SafeAreaView style={styles.center}>
+          <TouchableOpacity onPress={() => router.back()} style={{ position: "absolute", top: 16, right: 20, padding: 10 }}>
+            <Text style={{ color: "#fff", fontSize: 22, fontWeight: "800" }}>✕</Text>
+          </TouchableOpacity>
           <Text style={styles.bigNum}>100</Text>
           <Text style={styles.loadingText}>Gathering 100 headlines...</Text>
         </SafeAreaView>

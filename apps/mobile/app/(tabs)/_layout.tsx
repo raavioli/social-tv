@@ -19,22 +19,15 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Today",
-          tabBarIcon: ({ color }) => <TabIcon emoji="🏠" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="bulletin"
-        options={{
-          title: "Now",
+          title: "Guide",
           tabBarIcon: ({ color }) => <TabIcon emoji="📺" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="channels"
+        name="now"
         options={{
-          title: "Channels",
-          tabBarIcon: ({ color }) => <TabIcon emoji="📡" color={color} />,
+          title: "Now",
+          tabBarIcon: ({ color }) => <TabIcon emoji="▶️" color={color} />,
         }}
       />
       <Tabs.Screen

@@ -1,324 +1,228 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  SafeAreaView,
-  RefreshControl,
-  Dimensions,
-  Share,
-  Animated,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
-import { NewsCard } from "../../src/components/NewsCard";
-import { ChannelQuickStrip } from "../../src/components/ChannelQuickStrip";
 import { PERSONAS } from "../../src/constants/personas";
-import { PLATFORMS } from "../../src/constants/platforms";
-import { api } from "../../src/lib/api";
-import { FeedItem, CONTENT_VERTICALS } from "@social-tv/shared";
+import { Presenter } from "../../src/components/Presenter";
 
-const { width: W, height: H } = Dimensions.get("window");
-const CARD_HEIGHT = H * 0.72 + 16;
+// ─── Time-of-day programming ────────────────────────────────────────────────
+function getTimeSlot() {
+  const h = new Date().getHours();
+  if (h < 6)  return { id: "late_night", label: "Late Night",     emoji: "🌙", greeting: "Can't sleep?" };
+  if (h < 9)  return { id: "morning",    label: "Morning Show",   emoji: "☀️", greeting: "Good morning" };
+  if (h < 12) return { id: "mid_morning",label: "Mid-Morning",    emoji: "🌤️", greeting: "Good morning" };
+  if (h < 14) return { id: "lunch",      label: "Lunch Break",    emoji: "🍕", greeting: "Lunch break" };
+  if (h < 17) return { id: "afternoon",  label: "Afternoon",      emoji: "☕", greeting: "Good afternoon" };
+  if (h < 20) return { id: "evening",    label: "Evening News",   emoji: "🌆", greeting: "Good evening" };
+  if (h < 23) return { id: "prime_time", label: "Prime Time",     emoji: "📺", greeting: "Good evening" };
+  return { id: "late_night", label: "Late Night", emoji: "🌙", greeting: "Still up?" };
+}
 
-// Platform → vertical mapping for the Today screen
-const PLATFORM_VERTICAL_MAP: Record<string, { verticalId: string; color: string }> = {
-  twitter:   { verticalId: "tech",          color: "#6c47ff" },
-  instagram: { verticalId: "lifestyle",     color: "#10b981" },
-  youtube:   { verticalId: "entertainment", color: "#f59e0b" },
-  linkedin:  { verticalId: "business",      color: "#0A66C2" },
-};
+// ─── Moods ──────────────────────────────────────────────────────────────────
+const MOODS = [
+  { id: "focused",   emoji: "🎯", label: "Focused",   color: "#3b82f6" },
+  { id: "curious",   emoji: "🧠", label: "Curious",   color: "#8b5cf6" },
+  { id: "chill",     emoji: "😌", label: "Chill",     color: "#10b981" },
+  { id: "energised", emoji: "⚡", label: "Energised", color: "#f59e0b" },
+  { id: "stressed",  emoji: "🫠", label: "Stressed",  color: "#ef4444" },
+];
 
-export default function TodayScreen() {
-  const {
-    settings,
-    connectedAccounts,
-    activeChannelIndex,
-    nextChannel,
-    prevChannel,
-    setActiveChannelIndex,
-    retainItem,
-  } = useAppStore();
+// ─── Quick Programmes ───────────────────────────────────────────────────────
+const QUICK_PROGRAMMES = [
+  { id: "top10",          emoji: "🔢", label: "Top 10 Stories",      sub: "1 min · All platforms",  route: "/formats/top10_quick",    color: "#6c47ff" },
+  { id: "breaking",       emoji: "🔴", label: "Breaking Now",        sub: "Live updates",           route: "/formats/breaking_news",  color: "#ef4444" },
+  { id: "close_friends",  emoji: "👥", label: "Close Friends",       sub: "People you care about",  route: "/formats/previously_on",  color: "#10b981" },
+  { id: "your_updates",   emoji: "📊", label: "Your Updates",        sub: "How your content is doing", route: "/formats/previously_on", color: "#8b5cf6" },
+  { id: "flash",          emoji: "⚡", label: "Flash Briefing",      sub: "2 min catch-up",         route: "/bulletin/flash",         color: "#f59e0b" },
+  { id: "100in100",       emoji: "🚀", label: "100 in 100",          sub: "100 headlines, 100 sec", route: "/bulletin/hundred_in_hundred", color: "#ec4899" },
+];
 
-  const [items, setItems] = useState<FeedItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
+// ─── Topic Channels ─────────────────────────────────────────────────────────
+const TOPIC_CHANNELS = [
+  { id: "tech",          emoji: "💻", label: "Tech & AI",      stories: 15, color: "#3b82f6" },
+  { id: "entertainment", emoji: "🎭", label: "Entertainment",  stories: 10, color: "#f59e0b" },
+  { id: "business",      emoji: "💼", label: "Business",       stories: 7,  color: "#0ea5e9" },
+  { id: "sports",        emoji: "🏆", label: "Sports",         stories: 6,  color: "#22c55e" },
+  { id: "lifestyle",     emoji: "🌿", label: "Lifestyle",      stories: 9,  color: "#10b981" },
+  { id: "trending",      emoji: "🔥", label: "Trending",       stories: 8,  color: "#ef4444" },
+];
 
-  // TV tuning animation
-  const tuneOpacity = useRef(new Animated.Value(1)).current;
+export default function ControlCenterScreen() {
+  const { settings } = useAppStore();
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const timeSlot = getTimeSlot();
+  const persona = PERSONAS.find(p => p.id === settings.selectedPersonaId) ?? PERSONAS[0];
 
-  const activeAccount = connectedAccounts[activeChannelIndex];
-  const persona = PERSONAS.find((p) => p.id === settings.selectedPersonaId)!;
-  const platform = activeAccount ? PLATFORMS.find((p) => p.id === activeAccount.platform) : null;
-
-  // Resolve vertical for the active platform
-  const platformVerticalHint = activeAccount
-    ? PLATFORM_VERTICAL_MAP[activeAccount.platform] ?? { verticalId: "breaking", color: "#cc0000" }
-    : null;
-  const activeVertical = platformVerticalHint
-    ? CONTENT_VERTICALS.find(v => v.id === platformVerticalHint.verticalId)
-    : null;
-
-  const playTuneAnimation = () => {
-    Animated.sequence([
-      Animated.timing(tuneOpacity, { toValue: 0.1, duration: 80, useNativeDriver: true }),
-      Animated.timing(tuneOpacity, { toValue: 0.6, duration: 60, useNativeDriver: true }),
-      Animated.timing(tuneOpacity, { toValue: 0.2, duration: 40, useNativeDriver: true }),
-      Animated.timing(tuneOpacity, { toValue: 1, duration: 120, useNativeDriver: true }),
-    ]).start();
-  };
-
-  const load = useCallback(async () => {
-    if (!activeAccount) {
-      setItems(MOCK_ITEMS);
-      setLoading(false);
-      setRefreshing(false);
-      return;
-    }
-    try {
-      const feed = await api.getFeed([activeAccount.platform]);
-      setItems(feed);
-    } catch {
-      setItems(MOCK_ITEMS_BY_PLATFORM[activeAccount.platform] ?? MOCK_ITEMS);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [activeAccount?.id]);
-
-  useEffect(() => {
-    setLoading(true);
-    setActiveCardIndex(0);
-    playTuneAnimation();
-    load();
-  }, [activeChannelIndex]);
-
-  const handleChannelChange = (dir: "next" | "prev") => {
-    if (dir === "next") nextChannel();
-    else prevChannel();
-  };
-
-  const now = new Date();
-  const greeting =
-    now.getHours() < 12 ? "Good morning" :
-    now.getHours() < 17 ? "Good afternoon" : "Good evening";
-
-  if (connectedAccounts.length === 0) {
-    return (
-      <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
-        <SafeAreaView style={styles.safe}>
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>📺</Text>
-            <Text style={styles.emptyTitle}>No channels yet</Text>
-            <Text style={styles.emptySub}>
-              Connect your social accounts to start watching your personalised TV channel.
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/connect")}
-              style={styles.connectBtn}
-            >
-              <LinearGradient
-                colors={["#6c47ff", "#a855f7"]}
-                style={styles.connectBtnGrad}
-              >
-                <Text style={styles.connectBtnText}>Connect Accounts →</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
-    );
-  }
+  const presenterLine = selectedMood
+    ? `${MOODS.find(m => m.id === selectedMood)?.emoji} ${selectedMood} mood — I'll tune your feed accordingly.`
+    : `It's ${timeSlot.label} time. What are we watching?`;
 
   return (
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>
-        {/* TV Channel OSD (On-Screen Display) */}
-        <View style={styles.osd}>
-          {/* Left: greeting + host */}
-          <View>
-            <Text style={styles.greeting}>{greeting} 👋</Text>
-            <Text style={styles.hostLine}>
-              {persona.avatarEmoji} {persona.name} · {items.length} stories
-            </Text>
-          </View>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-          {/* Right: channel indicator */}
-          {platform && activeAccount && (
-            <BlurView intensity={30} tint="dark" style={styles.channelBadge}>
-              <LinearGradient
-                colors={[platform.color, platform.colorEnd]}
-                style={styles.channelDot}
-              />
-              <Text style={styles.channelNum}>
-                CH {activeChannelIndex + 1}
-              </Text>
-              <Text style={styles.channelPlatform}>{platform.emoji}</Text>
-            </BlurView>
-          )}
-        </View>
-
-        {/* Bulletin shortcut */}
-        <View style={styles.shortcutRow}>
-          <TouchableOpacity
-            style={styles.bulletinBtn}
-            onPress={() => router.push("/bulletin")}
-          >
-            <LinearGradient colors={["#6c47ff", "#a855f7"]} style={styles.bulletinBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Text style={styles.bulletinBtnText}>📋 Daily Bulletin</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.prevOnBtn}
-            onPress={() => router.push("/formats/previously_on" as any)}
-          >
-            <BlurView intensity={30} tint="dark" style={styles.prevOnBtnInner}>
-              <Text style={styles.prevOnBtnText}>⏮ Previously On</Text>
-            </BlurView>
-          </TouchableOpacity>
-        </View>
-
-        {/* Channel switcher arrows */}
-        <View style={styles.channelSwitcher}>
-          <TouchableOpacity
-            style={[styles.chBtn, activeChannelIndex === 0 && styles.chBtnDisabled]}
-            onPress={() => handleChannelChange("prev")}
-            disabled={activeChannelIndex === 0}
-          >
-            <Text style={styles.chBtnText}>◀ CH{activeChannelIndex}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.chBtn, activeChannelIndex >= connectedAccounts.length - 1 && styles.chBtnDisabled]}
-            onPress={() => handleChannelChange("next")}
-            disabled={activeChannelIndex >= connectedAccounts.length - 1}
-          >
-            <Text style={styles.chBtnText}>CH{activeChannelIndex + 2} ▶</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Quick-format strip for the active channel's content vertical */}
-        {activeVertical && (
-          <ChannelQuickStrip
-            verticalId={activeVertical.id}
-            verticalColor={platformVerticalHint?.color ?? activeVertical.color}
-            verticalEmoji={activeVertical.emoji}
-            verticalName={activeVertical.name}
-            compact
-          />
-        )}
-
-        <Animated.View style={[{ flex: 1 }, { opacity: tuneOpacity }]}>
-          {loading ? (
-            <View style={styles.center}>
-              <ActivityIndicator color="#6c47ff" size="large" />
-              <Text style={styles.loadingText}>
-                Tuning into {activeAccount?.displayName ?? "your channel"}...
-              </Text>
-            </View>
-          ) : (
-            <ScrollView
-              snapToInterval={CARD_HEIGHT}
-              decelerationRate="fast"
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={() => { setRefreshing(true); load(); }}
-                  tintColor="#6c47ff"
-                />
-              }
-              onScroll={(e) => {
-                const idx = Math.round(e.nativeEvent.contentOffset.y / CARD_HEIGHT);
-                setActiveCardIndex(idx);
-              }}
-              scrollEventThrottle={16}
-            >
-              {items.map((item, i) => (
-                <View key={item.id} style={{ height: CARD_HEIGHT, justifyContent: "center", paddingHorizontal: 16 }}>
-                  <NewsCard
-                    item={item}
-                    isActive={i === activeCardIndex}
-                    onSave={() => retainItem(item, "remember")}
-                    onFollowUp={() => retainItem(item, "follow_up")}
-                    onShare={async () => Share.share({ title: item.title ?? item.summary, url: item.url })}
-                  />
+          {/* Header */}
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.greeting}>{timeSlot.greeting}</Text>
+              <View style={styles.timeRow}>
+                <Text style={styles.timeEmoji}>{timeSlot.emoji}</Text>
+                <Text style={styles.timeLabel}>{timeSlot.label}</Text>
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveText}>LIVE</Text>
                 </View>
-              ))}
-              <View style={{ height: 100 }} />
-            </ScrollView>
-          )}
-        </Animated.View>
-
-        {/* Story counter */}
-        {!loading && items.length > 0 && (
-          <View style={styles.counter}>
-            <Text style={styles.counterText}>
-              {activeCardIndex + 1} / {items.length}
-            </Text>
+              </View>
+            </View>
+            <TouchableOpacity onPress={() => router.push("/programming" as any)} style={styles.settingsBtn}>
+              <Text style={styles.settingsBtnText}>⚙️</Text>
+            </TouchableOpacity>
           </View>
-        )}
+
+          {/* Presenter */}
+          <Presenter
+            emoji={persona.avatarEmoji}
+            name={persona.name}
+            line={presenterLine}
+            accentColor={selectedMood ? MOODS.find(m => m.id === selectedMood)?.color : "#6c47ff"}
+          />
+
+          {/* Mood selector */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>HOW ARE YOU FEELING?</Text>
+            <View style={styles.moodRow}>
+              {MOODS.map(mood => {
+                const isActive = selectedMood === mood.id;
+                return (
+                  <TouchableOpacity
+                    key={mood.id}
+                    style={[styles.moodPill, isActive && { backgroundColor: mood.color + "30", borderColor: mood.color }]}
+                    onPress={() => setSelectedMood(isActive ? null : mood.id)}
+                  >
+                    <Text style={styles.moodEmoji}>{mood.emoji}</Text>
+                    <Text style={[styles.moodLabel, isActive && { color: mood.color }]}>{mood.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Quick Programmes */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>QUICK PROGRAMMES</Text>
+            <View style={styles.quickGrid}>
+              {QUICK_PROGRAMMES.map(prog => (
+                <TouchableOpacity
+                  key={prog.id}
+                  style={styles.quickCard}
+                  onPress={() => router.push(prog.route as any)}
+                  activeOpacity={0.7}
+                >
+                  <LinearGradient
+                    colors={[prog.color + "25", prog.color + "08"]}
+                    style={styles.quickCardGrad}
+                  >
+                    <Text style={styles.quickEmoji}>{prog.emoji}</Text>
+                    <Text style={styles.quickLabel}>{prog.label}</Text>
+                    <Text style={styles.quickSub}>{prog.sub}</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Topic Channels */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>CHANNELS</Text>
+            {TOPIC_CHANNELS.map(ch => (
+              <TouchableOpacity
+                key={ch.id}
+                activeOpacity={0.8}
+                onPress={() => router.push({ pathname: "/(tabs)/now", params: { channel: ch.id } } as any)}
+                style={styles.channelCard}
+              >
+                <BlurView intensity={12} tint="dark" style={styles.channelCardInner}>
+                  <LinearGradient colors={[ch.color, ch.color + "88"]} style={styles.chBadge}>
+                    <Text style={styles.chEmoji}>{ch.emoji}</Text>
+                  </LinearGradient>
+                  <View style={styles.chInfo}>
+                    <Text style={styles.chLabel}>{ch.label}</Text>
+                    <View style={styles.chMeta}>
+                      <View style={[styles.chDot, { backgroundColor: ch.color }]} />
+                      <Text style={styles.chStories}>{ch.stories} stories ready</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.chArrow}>▶</Text>
+                </BlurView>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Schedule */}
+          <TouchableOpacity
+            style={styles.scheduleBtn}
+            onPress={() => router.push("/programming" as any)}
+          >
+            <BlurView intensity={12} tint="dark" style={styles.scheduleBtnInner}>
+              <Text style={styles.scheduleBtnEmoji}>📋</Text>
+              <View>
+                <Text style={styles.scheduleBtnTitle}>My Schedule</Text>
+                <Text style={styles.scheduleBtnSub}>Customise your daily programming</Text>
+              </View>
+            </BlurView>
+          </TouchableOpacity>
+
+          <View style={{ height: 100 }} />
+        </ScrollView>
       </SafeAreaView>
     </LinearGradient>
   );
 }
 
-// Mock data per platform for demo
-const MOCK_ITEMS: FeedItem[] = [
-  { id: "1", channelId: "demo", platform: "twitter", type: "post", summary: "Just shipped a massive update to the AI editor. The new context window is insane 🔥", author: "You", authorHandle: "@you", url: "https://x.com", publishedAt: new Date(Date.now() - 30 * 60000).toISOString(), engagementScore: 9, stats: { likes: 847, comments: 93, shares: 210 }, tags: ["AI", "Dev"], imageUrl: "https://picsum.photos/seed/tw1/800/600" },
-  { id: "2", channelId: "demo", platform: "twitter", type: "post", summary: "Interesting thread on how foundation models are changing software architecture. Worth a read.", author: "Dev Friend", authorHandle: "@devfriend", url: "https://x.com", publishedAt: new Date(Date.now() - 2 * 3600000).toISOString(), engagementScore: 8, stats: { likes: 2100, comments: 180 }, tags: ["AI"], imageUrl: "https://picsum.photos/seed/tw2/800/600" },
-];
-
-const MOCK_ITEMS_BY_PLATFORM: Record<string, FeedItem[]> = {
-  twitter: MOCK_ITEMS,
-  instagram: [
-    { id: "ig1", channelId: "demo", platform: "instagram", type: "reel", title: "Morning walk 🌅", summary: "Golden hour hits different when you're up early. Grateful for another day.", author: "You", authorHandle: "@yourhandle", url: "https://instagram.com", publishedAt: new Date(Date.now() - 3600000).toISOString(), engagementScore: 9.5, stats: { likes: 1240, comments: 67 }, tags: ["Life"], imageUrl: "https://picsum.photos/seed/ig1/800/600" },
-  ],
-  youtube: [
-    { id: "yt1", channelId: "demo", platform: "youtube", type: "video", title: "Building an AI app in 24 hours — Full Documentary", summary: "We attempted to ship a complete AI product in one day. Here's everything that went wrong and right.", author: "Favourite Creator", authorHandle: "FavChannel", url: "https://youtube.com", publishedAt: new Date(Date.now() - 5 * 3600000).toISOString(), engagementScore: 9.8, stats: { views: 280000, likes: 18000 }, tags: ["AI", "Build"], imageUrl: "https://picsum.photos/seed/yt1/800/600" },
-  ],
-  linkedin: [
-    { id: "li1", channelId: "demo", platform: "linkedin", type: "article", title: "Why I left a $400k job to build in public", summary: "After 8 years in big tech, I made the leap. Here's my honest reflection 3 months in.", author: "Connection", authorHandle: "connection", url: "https://linkedin.com", publishedAt: new Date(Date.now() - 6 * 3600000).toISOString(), engagementScore: 9.2, stats: { likes: 4200, comments: 890 }, tags: ["Career"], imageUrl: "https://picsum.photos/seed/li1/800/600" },
-  ],
-};
-
 const styles = StyleSheet.create({
   bg: { flex: 1 },
   safe: { flex: 1 },
-  osd: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
-  greeting: { color: "#fff", fontSize: 20, fontWeight: "800" },
-  hostLine: { color: "rgba(255,255,255,0.45)", fontSize: 12, marginTop: 2 },
-  channelBadge: { flexDirection: "row", alignItems: "center", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, gap: 6, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
-  channelDot: { width: 8, height: 8, borderRadius: 4 },
-  channelNum: { color: "#fff", fontSize: 11, fontWeight: "800", letterSpacing: 1 },
-  channelPlatform: { fontSize: 14 },
-  channelSwitcher: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 8 },
-  chBtn: { backgroundColor: "rgba(255,255,255,0.07)", borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6 },
-  chBtnDisabled: { opacity: 0.2 },
-  chBtnText: { color: "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: "700" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 16 },
-  loadingText: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
-  scrollContent: { paddingTop: 4 },
-  shortcutRow: { flexDirection: "row", marginHorizontal: 20, gap: 8, marginBottom: 8 },
-  bulletinBtn: { flex: 1, borderRadius: 12, overflow: "hidden" },
-  bulletinBtnGrad: { paddingVertical: 10, alignItems: "center" },
-  bulletinBtnText: { color: "#fff", fontSize: 14, fontWeight: "800" },
-  prevOnBtn: { flex: 1, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
-  prevOnBtnInner: { paddingVertical: 10, alignItems: "center" },
-  prevOnBtnText: { color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: "800" },
-  counter: { position: "absolute", bottom: 90, alignSelf: "center", backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
-  counterText: { color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: "600" },
-  empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 40, gap: 16 },
-  emptyEmoji: { fontSize: 72 },
-  emptyTitle: { color: "#fff", fontSize: 28, fontWeight: "900", textAlign: "center" },
-  emptySub: { color: "rgba(255,255,255,0.45)", fontSize: 15, textAlign: "center", lineHeight: 22 },
-  connectBtn: { borderRadius: 16, overflow: "hidden", alignSelf: "stretch", marginTop: 8 },
-  connectBtnGrad: { paddingVertical: 16, alignItems: "center" },
-  connectBtnText: { color: "#fff", fontSize: 16, fontWeight: "800" },
+  scroll: { paddingBottom: 20 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 },
+  greeting: { color: "#fff", fontSize: 22, fontWeight: "900" },
+  timeRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
+  timeEmoji: { fontSize: 16 },
+  timeLabel: { color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: "700" },
+  liveBadge: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(239,68,68,0.15)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
+  liveDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "#ef4444" },
+  liveText: { color: "#ef4444", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  settingsBtn: { padding: 8 },
+  settingsBtnText: { fontSize: 22 },
+  section: { marginTop: 16, paddingHorizontal: 16 },
+  sectionTitle: { color: "rgba(255,255,255,0.25)", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, marginBottom: 10 },
+  moodRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
+  moodPill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  moodEmoji: { fontSize: 16 },
+  moodLabel: { color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: "700" },
+  quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  quickCard: { width: "47%", borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  quickCardGrad: { padding: 16, minHeight: 100, justifyContent: "flex-end", gap: 4 },
+  quickEmoji: { fontSize: 24, marginBottom: 4 },
+  quickLabel: { color: "#fff", fontSize: 14, fontWeight: "800" },
+  quickSub: { color: "rgba(255,255,255,0.35)", fontSize: 11 },
+  channelCard: { marginBottom: 8, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  channelCardInner: { flexDirection: "row", alignItems: "center", padding: 14, gap: 14 },
+  chBadge: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  chEmoji: { fontSize: 20 },
+  chInfo: { flex: 1, gap: 3 },
+  chLabel: { color: "#fff", fontSize: 15, fontWeight: "800" },
+  chMeta: { flexDirection: "row", alignItems: "center", gap: 6 },
+  chDot: { width: 5, height: 5, borderRadius: 3 },
+  chStories: { color: "rgba(255,255,255,0.4)", fontSize: 12 },
+  chArrow: { color: "rgba(255,255,255,0.2)", fontSize: 14 },
+  scheduleBtn: { marginTop: 16, marginHorizontal: 16, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  scheduleBtnInner: { flexDirection: "row", alignItems: "center", padding: 16, gap: 14 },
+  scheduleBtnEmoji: { fontSize: 28 },
+  scheduleBtnTitle: { color: "#fff", fontSize: 15, fontWeight: "800" },
+  scheduleBtnSub: { color: "rgba(255,255,255,0.35)", fontSize: 12 },
 });

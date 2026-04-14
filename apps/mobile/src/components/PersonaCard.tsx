@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { impact } from "../lib/haptics";
 import { Persona } from "@social-tv/shared";
 
@@ -23,104 +22,93 @@ export const PersonaCard: React.FC<PersonaCardProps> = ({
   return (
     <Pressable
       onPress={handlePress}
-      style={[styles.wrapper, isSelected && styles.wrapperSelected]}
+      style={({ pressed }) => [
+        styles.row,
+        isSelected && [styles.rowSelected, { borderColor: persona.accentColor }],
+        pressed && { opacity: 0.8 },
+      ]}
     >
-      <LinearGradient
-        colors={
-          isSelected
-            ? [persona.accentColor + "44", persona.accentColor + "22"]
-            : ["#1a1a2e", "#16213e"]
-        }
-        style={styles.card}
-      >
-        {isSelected && (
-          <View
-            style={[styles.selectedBadge, { backgroundColor: persona.accentColor }]}
-          >
-            <Text style={styles.selectedBadgeText}>✓</Text>
-          </View>
-        )}
-        <Text style={styles.emoji}>{persona.avatarEmoji}</Text>
+      <Text style={styles.emoji}>{persona.avatarEmoji}</Text>
+
+      <View style={styles.info}>
         <Text style={styles.name}>{persona.name}</Text>
-        <Text style={styles.tagline}>{persona.tagline}</Text>
-        <View
-          style={[
-            styles.stylePill,
-            { backgroundColor: persona.accentColor + "33" },
-          ]}
-        >
-          <Text style={[styles.styleText, { color: persona.accentColor }]}>
-            {persona.style}
-          </Text>
+        <Text style={styles.tagline} numberOfLines={1}>
+          {persona.tagline}
+        </Text>
+      </View>
+
+      <View
+        style={[styles.stylePill, { backgroundColor: persona.accentColor + "33" }]}
+      >
+        <Text style={[styles.styleText, { color: persona.accentColor }]}>
+          {persona.style}
+        </Text>
+      </View>
+
+      {isSelected && (
+        <View style={[styles.check, { backgroundColor: persona.accentColor }]}>
+          <Text style={styles.checkText}>✓</Text>
         </View>
-      </LinearGradient>
+      )}
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    margin: 6,
-    borderRadius: 20,
-    borderWidth: 1.5,
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1a1a2e",
+    borderRadius: 14,
+    padding: 14,
+    gap: 12,
+    borderWidth: 2,
     borderColor: "transparent",
   },
-  wrapperSelected: {
-    borderColor: "#6c47ff",
+  rowSelected: {
     shadowColor: "#6c47ff",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 8,
   },
-  card: {
-    borderRadius: 18,
-    padding: 16,
-    alignItems: "center",
-    minHeight: 140,
-    justifyContent: "center",
-    gap: 6,
-  },
-  selectedBadge: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  selectedBadgeText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "800",
-  },
   emoji: {
-    fontSize: 36,
+    fontSize: 32,
+  },
+  info: {
+    flex: 1,
+    gap: 2,
   },
   name: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "800",
   },
   tagline: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 11,
-    textAlign: "center",
-    lineHeight: 15,
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 13,
   },
   stylePill: {
     borderRadius: 20,
     paddingHorizontal: 10,
-    paddingVertical: 3,
-    marginTop: 4,
+    paddingVertical: 4,
   },
   styleText: {
     fontSize: 10,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.8,
+  },
+  check: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "800",
   },
 });

@@ -100,4 +100,15 @@ export const PERSONAS: Persona[] = [
     promptStyle:
       "You are a wise old owl presenting the news. Be thoughtful, philosophical, and provide deeper context.",
   },
+  {
+    id: "parrot_pixel",
+    name: "Pixel",
+    tagline: "Loud, colorful, never boring.",
+    avatarEmoji: "🦜",
+    voiceId: "TxGEqnHWrfWFTfGW9XjX",
+    style: "energetic",
+    accentColor: "#14b8a6",
+    promptStyle:
+      "You are an excitable parrot host. Be colorful, loud, and repeat the most important bits for emphasis. Keep it fun.",
+  },
 ];

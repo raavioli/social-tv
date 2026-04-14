@@ -1,28 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, SafeAreaView, Switch,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable,
+  SafeAreaView, Animated, Dimensions, Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-// BlurView replaced with View for Android compatibility
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { PERSONAS } from "../../src/constants/personas";
-import { Presenter } from "../../src/components/Presenter";
 
-// ─── Time-of-day programming ────────────────────────────────────────────────
-function getTimeSlot() {
-  const h = new Date().getHours();
-  if (h < 6)  return { id: "late_night", label: "Late Night",     emoji: "🌙", greeting: "Can't sleep?" };
-  if (h < 9)  return { id: "morning",    label: "Morning Show",   emoji: "☀️", greeting: "Good morning" };
-  if (h < 12) return { id: "mid_morning",label: "Mid-Morning",    emoji: "🌤️", greeting: "Good morning" };
-  if (h < 14) return { id: "lunch",      label: "Lunch Break",    emoji: "🍕", greeting: "Lunch break" };
-  if (h < 17) return { id: "afternoon",  label: "Afternoon",      emoji: "☕", greeting: "Good afternoon" };
-  if (h < 20) return { id: "evening",    label: "Evening News",   emoji: "🌆", greeting: "Good evening" };
-  if (h < 23) return { id: "prime_time", label: "Prime Time",     emoji: "📺", greeting: "Good evening" };
-  return { id: "late_night", label: "Late Night", emoji: "🌙", greeting: "Still up?" };
-}
+const { width: W } = Dimensions.get("window");
 
-// ─── Moods ──────────────────────────────────────────────────────────────────
+// Mood chips
 const MOODS = [
   { id: "focused",   emoji: "🎯", label: "Focused",   color: "#3b82f6" },
   { id: "curious",   emoji: "🧠", label: "Curious",   color: "#8b5cf6" },
@@ -31,125 +19,140 @@ const MOODS = [
   { id: "stressed",  emoji: "🫠", label: "Stressed",  color: "#ef4444" },
 ];
 
-// ─── Quick Programmes (user can toggle on/off, reorder) ─────────────────────
-const DEFAULT_PROGRAMMES = [
-  { id: "top10",          emoji: "🔢", label: "Top 10 Stories",      sub: "1 min · All platforms",  route: "/formats/top10_quick",    color: "#6c47ff", enabled: true },
-  { id: "breaking",       emoji: "🔴", label: "Breaking Now",        sub: "Live updates",           route: "/formats/breaking_news",  color: "#ef4444", enabled: true },
-  { id: "close_friends",  emoji: "👥", label: "Close Friends",       sub: "People you care about",  route: "/formats/previously_on",  color: "#10b981", enabled: true },
-  { id: "your_updates",   emoji: "📊", label: "Your Updates",        sub: "How your content is doing", route: "/formats/previously_on", color: "#8b5cf6", enabled: true },
-  { id: "flash",          emoji: "⚡", label: "Flash Briefing",      sub: "2 min catch-up",         route: "/bulletin/flash",         color: "#f59e0b", enabled: true },
-  { id: "100in100",       emoji: "🚀", label: "100 in 100",          sub: "100 headlines, 100 sec", route: "/bulletin/hundred_in_hundred", color: "#ec4899", enabled: false },
-  { id: "deep_dive",      emoji: "🔭", label: "Deep Dive",           sub: "Long-form analysis",     route: "/formats/previously_on",  color: "#0ea5e9", enabled: false },
-  { id: "late_night",     emoji: "🌙", label: "Late Night",          sub: "Viral & funny",          route: "/formats/live_feed",      color: "#a855f7", enabled: false },
-];
-
-// ─── Topic Channels (user can toggle, reorder, assign presenter) ────────────
+// Topic channels the user controls
 const DEFAULT_CHANNELS = [
-  { id: "tech",          emoji: "💻", label: "Tech & AI",      stories: 15, color: "#3b82f6", enabled: true,  priority: 1 },
-  { id: "entertainment", emoji: "🎭", label: "Entertainment",  stories: 10, color: "#f59e0b", enabled: true,  priority: 2 },
-  { id: "business",      emoji: "💼", label: "Business",       stories: 7,  color: "#0ea5e9", enabled: true,  priority: 3 },
-  { id: "sports",        emoji: "🏆", label: "Sports",         stories: 6,  color: "#22c55e", enabled: false, priority: 4 },
-  { id: "lifestyle",     emoji: "🌿", label: "Lifestyle",      stories: 9,  color: "#10b981", enabled: true,  priority: 5 },
-  { id: "trending",      emoji: "🔥", label: "Trending",       stories: 8,  color: "#ef4444", enabled: true,  priority: 6 },
-  { id: "science",       emoji: "🔬", label: "Science",        stories: 4,  color: "#6366f1", enabled: false, priority: 7 },
-  { id: "gaming",        emoji: "🎮", label: "Gaming",         stories: 5,  color: "#14b8a6", enabled: false, priority: 8 },
-  { id: "politics",      emoji: "🏛️", label: "Politics",       stories: 3,  color: "#64748b", enabled: false, priority: 9 },
-  { id: "food",          emoji: "🍕", label: "Food & Drink",   stories: 6,  color: "#f97316", enabled: false, priority: 10 },
+  { id: "for_you",       emoji: "⭐", label: "For You",       color: "#6c47ff", stories: 12, topStory: "Your AI post is going viral — 2.4K likes" },
+  { id: "tech",          emoji: "💻", label: "Tech & AI",      color: "#3b82f6", stories: 15, topStory: "React Native 0.78 ships new architecture" },
+  { id: "trending",      emoji: "🔥", label: "Trending",       color: "#ef4444", stories: 8,  topStory: "OpenAI announces GPT-5" },
+  { id: "entertainment", emoji: "🎭", label: "Entertainment",  color: "#f59e0b", stories: 10, topStory: "New music video just dropped" },
+  { id: "business",      emoji: "💼", label: "Business",       color: "#0ea5e9", stories: 7,  topStory: "Markets surge as Fed signals rate pause" },
+  { id: "sports",        emoji: "🏆", label: "Sports",         color: "#22c55e", stories: 6,  topStory: "Champions League semi-final results" },
+  { id: "lifestyle",     emoji: "🌿", label: "Lifestyle",      color: "#10b981", stories: 9,  topStory: "Morning routine that changed everything" },
+  { id: "your_updates",  emoji: "📊", label: "Your Updates",   color: "#8b5cf6", stories: 5,  topStory: "15 profile views this week" },
 ];
 
-export default function ControlCenterScreen() {
+// Quick programme formats
+const QUICK_PROGRAMMES = [
+  { id: "top10",     emoji: "🔢", label: "Top 10",         sub: "1 min",    route: "/formats/top10_quick",          color: "#6c47ff" },
+  { id: "breaking",  emoji: "🔴", label: "Breaking",       sub: "Live",     route: "/formats/breaking_news",        color: "#ef4444" },
+  { id: "flash",     emoji: "⚡", label: "Flash Brief",    sub: "2 min",    route: "/bulletin/flash",               color: "#f59e0b" },
+  { id: "friends",   emoji: "👥", label: "Friends",        sub: "Updates",  route: "/formats/previously_on",        color: "#10b981" },
+  { id: "100in100",  emoji: "🚀", label: "100 in 100",     sub: "100 sec",  route: "/bulletin/hundred_in_hundred",  color: "#ec4899" },
+];
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 6) return { text: "Late Night", emoji: "🌙" };
+  if (h < 12) return { text: "Good morning", emoji: "☀️" };
+  if (h < 17) return { text: "Good afternoon", emoji: "☕" };
+  if (h < 21) return { text: "Good evening", emoji: "🌆" };
+  return { text: "Late Night", emoji: "🌙" };
+}
+
+export default function DirectorsDeskScreen() {
   const { settings } = useAppStore();
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [programmes, setProgrammes] = useState(DEFAULT_PROGRAMMES);
-  const [channels, setChannels] = useState(DEFAULT_CHANNELS);
+  const [activeChannelIdx, setActiveChannelIdx] = useState(0);
   const [editMode, setEditMode] = useState(false);
+  const [channels, setChannels] = useState(DEFAULT_CHANNELS);
 
-  const timeSlot = getTimeSlot();
   const persona = PERSONAS.find(p => p.id === settings.selectedPersonaId) ?? PERSONAS[0];
+  const greeting = getGreeting();
+  const activeChannel = channels[activeChannelIdx];
 
-  const enabledChannels = channels.filter(c => c.enabled).sort((a, b) => a.priority - b.priority);
-  const disabledChannels = channels.filter(c => !c.enabled);
-  const enabledProgrammes = programmes.filter(p => p.enabled);
-  const disabledProgrammes = programmes.filter(p => !p.enabled);
-
-  const toggleChannel = (id: string) => {
-    setChannels(prev => prev.map(c => c.id === id ? { ...c, enabled: !c.enabled } : c));
-  };
-
-  const toggleProgramme = (id: string) => {
-    setProgrammes(prev => prev.map(p => p.id === id ? { ...p, enabled: !p.enabled } : p));
-  };
-
-  const moveChannel = (id: string, dir: "up" | "down") => {
-    setChannels(prev => {
-      const enabled = prev.filter(c => c.enabled).sort((a, b) => a.priority - b.priority);
-      const idx = enabled.findIndex(c => c.id === id);
-      if (dir === "up" && idx > 0) {
-        const temp = enabled[idx].priority;
-        enabled[idx].priority = enabled[idx - 1].priority;
-        enabled[idx - 1].priority = temp;
-      } else if (dir === "down" && idx < enabled.length - 1) {
-        const temp = enabled[idx].priority;
-        enabled[idx].priority = enabled[idx + 1].priority;
-        enabled[idx + 1].priority = temp;
-      }
-      return prev.map(c => {
-        const updated = enabled.find(e => e.id === c.id);
-        return updated ? { ...c, priority: updated.priority } : c;
+  const moveChannel = (idx: number, dir: "up" | "down") => {
+    if (dir === "up" && idx > 0) {
+      setChannels(prev => {
+        const next = [...prev];
+        [next[idx], next[idx - 1]] = [next[idx - 1], next[idx]];
+        return next;
       });
-    });
+      if (activeChannelIdx === idx) setActiveChannelIdx(idx - 1);
+    } else if (dir === "down" && idx < channels.length - 1) {
+      setChannels(prev => {
+        const next = [...prev];
+        [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+        return next;
+      });
+      if (activeChannelIdx === idx) setActiveChannelIdx(idx + 1);
+    }
   };
-
-  const presenterLine = selectedMood
-    ? `${MOODS.find(m => m.id === selectedMood)?.emoji} Got it — tuning your lineup for a ${selectedMood} vibe.`
-    : editMode
-    ? "You're the director. Set up your station however you like."
-    : `It's ${timeSlot.label} time. Your lineup is ready — tap to go live.`;
 
   return (
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        <ScrollView showsVerticalScrollIndicator={false}>
 
-          {/* Header */}
+          {/* ── HEADER ── */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.greeting}>{timeSlot.greeting}</Text>
-              <View style={styles.timeRow}>
-                <Text style={styles.timeEmoji}>{timeSlot.emoji}</Text>
-                <Text style={styles.timeLabel}>{timeSlot.label}</Text>
-                <View style={styles.liveBadge}>
-                  <View style={styles.liveDot} />
-                  <Text style={styles.liveText}>LIVE</Text>
-                </View>
-              </View>
+              <Text style={styles.greeting}>{greeting.emoji} {greeting.text}</Text>
+              <Text style={styles.subGreeting}>Your station, your rules</Text>
             </View>
-            <TouchableOpacity
-              onPress={() => setEditMode(!editMode)}
-              style={[styles.editBtn, editMode && styles.editBtnActive]}
-            >
-              <Text style={styles.editBtnText}>{editMode ? "✓ Done" : "✏️ Edit"}</Text>
-            </TouchableOpacity>
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => setEditMode(!editMode)} style={[styles.editBtn, editMode && styles.editBtnActive]}>
+                <Text style={styles.editBtnText}>{editMode ? "✓ Done" : "✏️"}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push("/onboarding" as any)}>
+                <Text style={styles.presenterChip}>{persona.avatarEmoji}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Presenter */}
-          <Presenter
-            emoji={persona.avatarEmoji}
-            name={persona.name}
-            line={presenterLine}
-            accentColor={selectedMood ? MOODS.find(m => m.id === selectedMood)?.color : "#6c47ff"}
-          />
+          {/* ── LIVE PREVIEW ── */}
+          <Pressable
+            style={styles.livePreview}
+            onPress={() => router.push({ pathname: "/(tabs)/now", params: { channel: activeChannel.id } } as any)}
+          >
+            <LinearGradient colors={[activeChannel.color + "30", "#0a0a0f"]} style={styles.livePreviewGrad}>
+              {/* Channel indicator */}
+              <View style={styles.liveHeader}>
+                <View style={styles.liveChannelBadge}>
+                  <View style={[styles.liveDot, { backgroundColor: activeChannel.color }]} />
+                  <Text style={styles.liveLabel}>ON AIR</Text>
+                </View>
+                <Text style={styles.liveChannelName}>{activeChannel.emoji} {activeChannel.label}</Text>
+              </View>
 
-          {/* Mood selector */}
+              {/* Top story preview */}
+              <Text style={styles.liveHeadline}>{activeChannel.topStory}</Text>
+              <Text style={styles.liveStoryCount}>{activeChannel.stories} stories ready</Text>
+
+              {/* GO LIVE button */}
+              <LinearGradient colors={[activeChannel.color, activeChannel.color + "cc"]} style={styles.goLiveBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                <Text style={styles.goLiveText}>▶  WATCH NOW</Text>
+              </LinearGradient>
+            </LinearGradient>
+          </Pressable>
+
+          {/* ── CHANNEL SWITCHER STRIP ── */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.switcherStrip}>
+            {channels.map((ch, idx) => {
+              const isActive = idx === activeChannelIdx;
+              return (
+                <Pressable
+                  key={ch.id}
+                  onPress={() => setActiveChannelIdx(idx)}
+                  style={[styles.switcherBtn, isActive && { borderColor: ch.color, backgroundColor: ch.color + "15" }]}
+                >
+                  <Text style={styles.switcherEmoji}>{ch.emoji}</Text>
+                  <Text style={[styles.switcherLabel, isActive && { color: ch.color }]}>{ch.label}</Text>
+                  {isActive && <View style={[styles.switcherDot, { backgroundColor: ch.color }]} />}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          {/* ── MOOD BAR ── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>YOUR MOOD RIGHT NOW</Text>
-            <View style={styles.moodRow}>
+            <Text style={styles.sectionTitle}>MOOD</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moodRow}>
               {MOODS.map(mood => {
                 const isActive = selectedMood === mood.id;
                 return (
                   <TouchableOpacity
                     key={mood.id}
-                    style={[styles.moodPill, isActive && { backgroundColor: mood.color + "30", borderColor: mood.color }]}
+                    style={[styles.moodChip, isActive && { backgroundColor: mood.color + "25", borderColor: mood.color }]}
                     onPress={() => setSelectedMood(isActive ? null : mood.id)}
                   >
                     <Text style={styles.moodEmoji}>{mood.emoji}</Text>
@@ -157,167 +160,88 @@ export default function ControlCenterScreen() {
                   </TouchableOpacity>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
 
-          {/* Quick Programmes — GO LIVE buttons */}
+          {/* ── QUICK PROGRAMMES ── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>YOUR PROGRAMMES</Text>
-            <View style={styles.quickGrid}>
-              {enabledProgrammes.map(prog => (
-                <Pressable
-                  key={prog.id}
-                  style={styles.quickCard}
-                  onPress={() => editMode ? toggleProgramme(prog.id) : router.push(prog.route as any)}
-                >
-                  <LinearGradient
-                    colors={[prog.color + "25", prog.color + "08"]}
-                    style={styles.quickCardGrad}
-                  >
-                    {editMode && (
-                      <View style={[styles.removeBadge, { backgroundColor: "#ef4444" }]}>
-                        <Text style={styles.removeBadgeText}>−</Text>
-                      </View>
-                    )}
-                    <Text style={styles.quickEmoji}>{prog.emoji}</Text>
-                    <Text style={styles.quickLabel}>{prog.label}</Text>
-                    <Text style={styles.quickSub}>{prog.sub}</Text>
-                    {!editMode && (
-                      <View style={[styles.goLivePill, { backgroundColor: prog.color + "30" }]}>
-                        <Text style={[styles.goLiveText, { color: prog.color }]}>GO LIVE ▶</Text>
-                      </View>
-                    )}
+            <Text style={styles.sectionTitle}>QUICK PROGRAMMES</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.progRow}>
+              {QUICK_PROGRAMMES.map(prog => (
+                <Pressable key={prog.id} onPress={() => router.push(prog.route as any)}>
+                  <LinearGradient colors={[prog.color + "20", prog.color + "08"]} style={styles.progCard}>
+                    <Text style={styles.progEmoji}>{prog.emoji}</Text>
+                    <Text style={styles.progLabel}>{prog.label}</Text>
+                    <Text style={styles.progSub}>{prog.sub}</Text>
                   </LinearGradient>
                 </Pressable>
               ))}
-            </View>
-
-            {/* Add more programmes (edit mode) */}
-            {editMode && disabledProgrammes.length > 0 && (
-              <View style={styles.addSection}>
-                <Text style={styles.addLabel}>ADD PROGRAMMES</Text>
-                <View style={styles.quickGrid}>
-                  {disabledProgrammes.map(prog => (
-                    <TouchableOpacity
-                      key={prog.id}
-                      style={[styles.quickCard, { opacity: 0.5 }]}
-                      onPress={() => toggleProgramme(prog.id)}
-                    >
-                      <View style={styles.quickCardGrad}>
-                        <View style={[styles.addBadge, { backgroundColor: "#22c55e" }]}>
-                          <Text style={styles.addBadgeText}>+</Text>
-                        </View>
-                        <Text style={styles.quickEmoji}>{prog.emoji}</Text>
-                        <Text style={styles.quickLabel}>{prog.label}</Text>
-                        <Text style={styles.quickSub}>{prog.sub}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
+            </ScrollView>
           </View>
 
-          {/* Topic Channels — the user's lineup */}
+          {/* ── CHANNEL LINEUP ── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>YOUR CHANNELS</Text>
-            {enabledChannels.map((ch, idx) => (
+            <Text style={styles.sectionTitle}>{editMode ? "REORDER YOUR LINEUP" : "YOUR CHANNELS"}</Text>
+            {channels.map((ch, idx) => (
               <Pressable
                 key={ch.id}
-                onPress={() => !editMode && router.push({ pathname: "/(tabs)/now", params: { channel: ch.id } } as any)}
-                style={styles.channelCard}
+                style={[styles.channelRow, activeChannelIdx === idx && { borderColor: ch.color + "40" }]}
+                onPress={() => {
+                  if (editMode) return;
+                  setActiveChannelIdx(idx);
+                  router.push({ pathname: "/(tabs)/now", params: { channel: ch.id } } as any);
+                }}
               >
-                <View style={[styles.channelCardInner, { backgroundColor: "rgba(20,20,35,0.9)" }]}>
-                  {/* Channel number */}
-                  <Text style={styles.chNumber}>CH{idx + 1}</Text>
+                {/* Channel number */}
+                <Text style={styles.chNum}>CH{idx + 1}</Text>
 
-                  <LinearGradient colors={[ch.color, ch.color + "88"]} style={styles.chBadge}>
-                    <Text style={styles.chEmoji}>{ch.emoji}</Text>
-                  </LinearGradient>
+                {/* Icon */}
+                <LinearGradient colors={[ch.color, ch.color + "88"]} style={styles.chIcon}>
+                  <Text style={styles.chIconEmoji}>{ch.emoji}</Text>
+                </LinearGradient>
 
-                  <View style={styles.chInfo}>
-                    <Text style={styles.chLabel}>{ch.label}</Text>
-                    <Text style={styles.chStories}>{ch.stories} stories ready</Text>
-                  </View>
-
-                  {editMode ? (
-                    <View style={styles.editControls}>
-                      <TouchableOpacity onPress={() => moveChannel(ch.id, "up")} style={styles.moveBtn}>
-                        <Text style={styles.moveBtnText}>▲</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => moveChannel(ch.id, "down")} style={styles.moveBtn}>
-                        <Text style={styles.moveBtnText}>▼</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => toggleChannel(ch.id)} style={styles.removeBtn}>
-                        <Text style={styles.removeBtnText}>✕</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <View style={[styles.liveIndicator, { backgroundColor: ch.color + "20" }]}>
-                      <View style={[styles.liveDotSmall, { backgroundColor: ch.color }]} />
-                      <Text style={[styles.liveSmallText, { color: ch.color }]}>LIVE</Text>
-                    </View>
-                  )}
+                {/* Info */}
+                <View style={styles.chInfo}>
+                  <Text style={styles.chName}>{ch.label}</Text>
+                  <Text style={styles.chPreview} numberOfLines={1}>{ch.topStory}</Text>
                 </View>
+
+                {editMode ? (
+                  <View style={styles.reorderBtns}>
+                    <TouchableOpacity onPress={() => moveChannel(idx, "up")} style={styles.reorderBtn}>
+                      <Text style={styles.reorderText}>▲</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => moveChannel(idx, "down")} style={styles.reorderBtn}>
+                      <Text style={styles.reorderText}>▼</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={styles.chMeta}>
+                    <Text style={[styles.chCount, { color: ch.color }]}>{ch.stories}</Text>
+                    <View style={[styles.chLive, { backgroundColor: ch.color + "20" }]}>
+                      <View style={[styles.chLiveDot, { backgroundColor: ch.color }]} />
+                    </View>
+                  </View>
+                )}
               </Pressable>
             ))}
-
-            {/* Add more channels (edit mode) */}
-            {editMode && disabledChannels.length > 0 && (
-              <View style={styles.addSection}>
-                <Text style={styles.addLabel}>ADD CHANNELS</Text>
-                {disabledChannels.map(ch => (
-                  <Pressable
-                    key={ch.id}
-                    style={[styles.channelCard, { opacity: 0.4 }]}
-                    onPress={() => toggleChannel(ch.id)}
-                  >
-                    <View style={[styles.channelCardInner, { backgroundColor: "rgba(20,20,35,0.7)" }]}>
-                      <View style={[styles.addBadgeSmall, { backgroundColor: "#22c55e" }]}>
-                        <Text style={styles.addBadgeText}>+</Text>
-                      </View>
-                      <LinearGradient colors={[ch.color, ch.color + "88"]} style={styles.chBadge}>
-                        <Text style={styles.chEmoji}>{ch.emoji}</Text>
-                      </LinearGradient>
-                      <View style={styles.chInfo}>
-                        <Text style={styles.chLabel}>{ch.label}</Text>
-                        <Text style={styles.chStories}>{ch.stories} stories</Text>
-                      </View>
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
-            )}
           </View>
 
-          {/* Presenter picker shortcut */}
-          <Pressable
-            style={styles.presenterPicker}
-            onPress={() => router.push("/onboarding" as any)}
-          >
-            <View style={[styles.presenterPickerInner, { backgroundColor: "rgba(20,20,35,0.9)" }]}>
-              <Text style={styles.presenterPickerEmoji}>{persona.avatarEmoji}</Text>
-              <View style={styles.presenterPickerInfo}>
-                <Text style={styles.presenterPickerTitle}>Your presenter: {persona.name}</Text>
-                <Text style={styles.presenterPickerSub}>Tap to change who delivers your news</Text>
-              </View>
-              <Text style={styles.presenterPickerArrow}>→</Text>
-            </View>
-          </Pressable>
-
-          {/* Schedule shortcut */}
-          <Pressable
-            style={styles.scheduleBtn}
-            onPress={() => router.push("/programming" as any)}
-          >
-            <View style={[styles.scheduleBtnInner, { backgroundColor: "rgba(20,20,35,0.9)" }]}>
-              <Text style={styles.scheduleBtnEmoji}>📋</Text>
-              <View>
-                <Text style={styles.scheduleBtnTitle}>My Schedule</Text>
-                <Text style={styles.scheduleBtnSub}>Set up daily auto-programming</Text>
-              </View>
-            </View>
-          </Pressable>
+          {/* ── BOTTOM SHORTCUTS ── */}
+          <View style={styles.shortcuts}>
+            <Pressable style={styles.shortcutBtn} onPress={() => router.push("/programming" as any)}>
+              <Text style={styles.shortcutEmoji}>📋</Text>
+              <Text style={styles.shortcutLabel}>Schedule</Text>
+            </Pressable>
+            <Pressable style={styles.shortcutBtn} onPress={() => router.push("/connect" as any)}>
+              <Text style={styles.shortcutEmoji}>🔗</Text>
+              <Text style={styles.shortcutLabel}>Sources</Text>
+            </Pressable>
+            <Pressable style={styles.shortcutBtn} onPress={() => router.push("/programming/filters" as any)}>
+              <Text style={styles.shortcutEmoji}>🎛️</Text>
+              <Text style={styles.shortcutLabel}>Filters</Text>
+            </Pressable>
+          </View>
 
           <View style={{ height: 100 }} />
         </ScrollView>
@@ -329,65 +253,73 @@ export default function ControlCenterScreen() {
 const styles = StyleSheet.create({
   bg: { flex: 1 },
   safe: { flex: 1 },
-  scroll: { paddingBottom: 20 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 },
+
+  // Header
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", paddingHorizontal: 20, paddingTop: 12 },
   greeting: { color: "#fff", fontSize: 22, fontWeight: "900" },
-  timeRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
-  timeEmoji: { fontSize: 16 },
-  timeLabel: { color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: "700" },
-  liveBadge: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(239,68,68,0.15)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
-  liveDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "#ef4444" },
-  liveText: { color: "#ef4444", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
-  editBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  subGreeting: { color: "rgba(255,255,255,0.3)", fontSize: 12, marginTop: 2 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
+  editBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
   editBtnActive: { backgroundColor: "rgba(108,71,255,0.3)", borderColor: "#6c47ff" },
-  editBtnText: { color: "rgba(255,255,255,0.7)", fontSize: 13, fontWeight: "700" },
-  section: { marginTop: 16, paddingHorizontal: 16 },
-  sectionTitle: { color: "rgba(255,255,255,0.25)", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, marginBottom: 10 },
-  moodRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
-  moodPill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  editBtnText: { color: "rgba(255,255,255,0.7)", fontSize: 14 },
+  presenterChip: { fontSize: 28 },
+
+  // Live Preview
+  livePreview: { marginHorizontal: 16, marginTop: 16, borderRadius: 20, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  livePreviewGrad: { padding: 20, gap: 10 },
+  liveHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  liveChannelBadge: { flexDirection: "row", alignItems: "center", gap: 6 },
+  liveDot: { width: 8, height: 8, borderRadius: 4 },
+  liveLabel: { color: "#ef4444", fontSize: 10, fontWeight: "900", letterSpacing: 1.5 },
+  liveChannelName: { color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: "700" },
+  liveHeadline: { color: "#fff", fontSize: 20, fontWeight: "800", lineHeight: 26 },
+  liveStoryCount: { color: "rgba(255,255,255,0.3)", fontSize: 12 },
+  goLiveBtn: { borderRadius: 14, paddingVertical: 14, alignItems: "center", marginTop: 6 },
+  goLiveText: { color: "#fff", fontSize: 15, fontWeight: "900", letterSpacing: 1 },
+
+  // Channel switcher
+  switcherStrip: { paddingHorizontal: 16, gap: 8, paddingVertical: 14 },
+  switcherBtn: { alignItems: "center", gap: 4, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.03)", minWidth: 70 },
+  switcherEmoji: { fontSize: 20 },
+  switcherLabel: { color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: "700" },
+  switcherDot: { width: 4, height: 4, borderRadius: 2, marginTop: 2 },
+
+  // Sections
+  section: { marginTop: 8, paddingHorizontal: 16 },
+  sectionTitle: { color: "rgba(255,255,255,0.2)", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, marginBottom: 10 },
+
+  // Mood
+  moodRow: { gap: 8, paddingRight: 16 },
+  moodChip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.04)", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
   moodEmoji: { fontSize: 16 },
-  moodLabel: { color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: "700" },
-  quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  quickCard: { width: "47%", borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
-  quickCardGrad: { padding: 16, minHeight: 110, justifyContent: "flex-end", gap: 4 },
-  quickEmoji: { fontSize: 24, marginBottom: 4 },
-  quickLabel: { color: "#fff", fontSize: 14, fontWeight: "800" },
-  quickSub: { color: "rgba(255,255,255,0.35)", fontSize: 11 },
-  goLivePill: { alignSelf: "flex-start", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, marginTop: 6 },
-  goLiveText: { fontSize: 10, fontWeight: "900", letterSpacing: 1 },
-  removeBadge: { position: "absolute", top: 8, right: 8, width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
-  removeBadgeText: { color: "#fff", fontSize: 16, fontWeight: "900" },
-  addBadge: { position: "absolute", top: 8, right: 8, width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
-  addBadgeText: { color: "#fff", fontSize: 16, fontWeight: "900" },
-  addSection: { marginTop: 16 },
-  addLabel: { color: "rgba(255,255,255,0.15)", fontSize: 10, fontWeight: "800", letterSpacing: 1, marginBottom: 8 },
-  channelCard: { marginBottom: 8, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
-  channelCardInner: { flexDirection: "row", alignItems: "center", padding: 12, gap: 12 },
-  chNumber: { color: "rgba(255,255,255,0.2)", fontSize: 10, fontWeight: "900", letterSpacing: 1, width: 28 },
-  chBadge: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  chEmoji: { fontSize: 18 },
+  moodLabel: { color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: "700" },
+
+  // Quick programmes
+  progRow: { gap: 10, paddingRight: 16 },
+  progCard: { width: 100, padding: 14, borderRadius: 14, gap: 6, borderWidth: 1, borderColor: "rgba(255,255,255,0.04)" },
+  progEmoji: { fontSize: 22 },
+  progLabel: { color: "#fff", fontSize: 12, fontWeight: "800" },
+  progSub: { color: "rgba(255,255,255,0.3)", fontSize: 10 },
+
+  // Channel lineup
+  channelRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 6, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.03)", borderWidth: 1, borderColor: "rgba(255,255,255,0.04)" },
+  chNum: { color: "rgba(255,255,255,0.15)", fontSize: 10, fontWeight: "900", width: 28, textAlign: "center" },
+  chIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  chIconEmoji: { fontSize: 16 },
   chInfo: { flex: 1, gap: 2 },
-  chLabel: { color: "#fff", fontSize: 14, fontWeight: "800" },
-  chStories: { color: "rgba(255,255,255,0.35)", fontSize: 11 },
-  liveIndicator: { flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4 },
-  liveDotSmall: { width: 4, height: 4, borderRadius: 2 },
-  liveSmallText: { fontSize: 9, fontWeight: "900", letterSpacing: 0.5 },
-  editControls: { flexDirection: "row", alignItems: "center", gap: 6 },
-  moveBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },
-  moveBtnText: { color: "rgba(255,255,255,0.5)", fontSize: 12 },
-  removeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(239,68,68,0.2)", alignItems: "center", justifyContent: "center" },
-  removeBtnText: { color: "#ef4444", fontSize: 12, fontWeight: "800" },
-  addBadgeSmall: { width: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  presenterPicker: { marginTop: 16, marginHorizontal: 16, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
-  presenterPickerInner: { flexDirection: "row", alignItems: "center", padding: 14, gap: 12 },
-  presenterPickerEmoji: { fontSize: 28 },
-  presenterPickerInfo: { flex: 1 },
-  presenterPickerTitle: { color: "#fff", fontSize: 14, fontWeight: "800" },
-  presenterPickerSub: { color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 2 },
-  presenterPickerArrow: { color: "rgba(255,255,255,0.2)", fontSize: 18 },
-  scheduleBtn: { marginTop: 10, marginHorizontal: 16, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
-  scheduleBtnInner: { flexDirection: "row", alignItems: "center", padding: 16, gap: 14 },
-  scheduleBtnEmoji: { fontSize: 28 },
-  scheduleBtnTitle: { color: "#fff", fontSize: 14, fontWeight: "800" },
-  scheduleBtnSub: { color: "rgba(255,255,255,0.35)", fontSize: 11 },
+  chName: { color: "#fff", fontSize: 13, fontWeight: "800" },
+  chPreview: { color: "rgba(255,255,255,0.3)", fontSize: 11 },
+  chMeta: { alignItems: "center", gap: 4 },
+  chCount: { fontSize: 16, fontWeight: "900" },
+  chLive: { width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  chLiveDot: { width: 5, height: 5, borderRadius: 3 },
+  reorderBtns: { flexDirection: "row", gap: 6 },
+  reorderBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: "rgba(255,255,255,0.06)", alignItems: "center", justifyContent: "center" },
+  reorderText: { color: "rgba(255,255,255,0.4)", fontSize: 12 },
+
+  // Bottom shortcuts
+  shortcuts: { flexDirection: "row", justifyContent: "center", gap: 20, marginTop: 20, paddingHorizontal: 16 },
+  shortcutBtn: { alignItems: "center", gap: 6, padding: 12 },
+  shortcutEmoji: { fontSize: 22 },
+  shortcutLabel: { color: "rgba(255,255,255,0.3)", fontSize: 10, fontWeight: "700" },
 });

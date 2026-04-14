@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { useAppStore } from "../src/store/useAppStore";
 import { PLATFORMS } from "../src/constants/platforms";
 import { api } from "../src/lib/api";
@@ -35,14 +34,10 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
     setConnecting(platform.id);
     try {
       const { authUrl } = await api.getOAuthUrl(platform.id);
-      // Open the OAuth URL in the browser
-      // In production, use expo-web-browser for in-app OAuth
       await Linking.openURL(authUrl);
-      // For demo: simulate a successful connection
       await simulateConnection(platform, addAccount);
     } catch (e) {
       console.warn("OAuth failed:", e);
-      // Demo fallback
       await simulateConnection(platform, addAccount);
     } finally {
       setConnecting(null);
@@ -58,31 +53,30 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.content}>
-          <Text style={styles.heading}>Connect Accounts 📡</Text>
+          <Text style={styles.heading}>Connect Accounts</Text>
           <Text style={styles.sub}>
             Each account becomes a TV channel.{"\n"}
             Swipe between them like changing channels.
           </Text>
 
           <View style={styles.list}>
-            {PLATFORMS.map((platform, i) => {
+            {PLATFORMS.map((platform) => {
               const connected = isConnected(platform.id);
               const account = getAccount(platform.id);
               const isLoading = connecting === platform.id;
-              const channelNum = connectedAccounts.findIndex(
-                (a) => a.platform === platform.id
-              ) + 1;
+              const channelNum =
+                connectedAccounts.findIndex((a) => a.platform === platform.id) + 1;
 
               return (
-                <BlurView key={platform.id} intensity={15} tint="dark" style={styles.row}>
+                <View key={platform.id} style={styles.row}>
                   {/* Channel number */}
                   <View style={styles.chNumWrap}>
                     <Text style={styles.chNum}>
-                      {connected ? `CH ${channelNum}` : `—`}
+                      {connected ? `CH ${channelNum}` : "-"}
                     </Text>
                   </View>
 
-                  {/* Platform icon + gradient */}
+                  {/* Platform icon */}
                   <LinearGradient
                     colors={[platform.color, platform.colorEnd]}
                     style={styles.platformIcon}
@@ -125,7 +119,7 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
                       </LinearGradient>
                     </Pressable>
                   )}
-                </BlurView>
+                </View>
               );
             })}
           </View>
@@ -140,7 +134,7 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
               >
                 <Text style={styles.doneBtnText}>
                   Start watching ({connectedAccounts.length} channel
-                  {connectedAccounts.length !== 1 ? "s" : ""}) →
+                  {connectedAccounts.length !== 1 ? "s" : ""})
                 </Text>
               </LinearGradient>
             </Pressable>
@@ -157,7 +151,6 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
   );
 }
 
-// Demo: simulate OAuth connection for testing without real credentials
 async function simulateConnection(
   platform: Platform,
   addAccount: (a: ConnectedAccount) => void
@@ -198,7 +191,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     gap: 12,
-    overflow: "hidden",
+    backgroundColor: "rgba(255,255,255,0.05)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
   },

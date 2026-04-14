@@ -1,7 +1,7 @@
 import { useEffect } from "react";
+import { View } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAppStore } from "../src/store/useAppStore";
 
@@ -26,17 +26,14 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, animation: "fade" }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="bulletin" />
-        <Stack.Screen name="programming" />
-        <Stack.Screen name="formats" />
         <Stack.Screen name="connect" />
       </Stack>
-    </GestureHandlerRootView>
+    </View>
   );
 }

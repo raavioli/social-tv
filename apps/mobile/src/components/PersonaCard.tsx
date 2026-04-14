@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { impact } from "../lib/haptics";
 import { Persona } from "@social-tv/shared";
@@ -21,9 +21,8 @@ export const PersonaCard: React.FC<PersonaCardProps> = ({
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handlePress}
-      activeOpacity={0.85}
       style={[styles.wrapper, isSelected && styles.wrapperSelected]}
     >
       <LinearGradient
@@ -55,7 +54,7 @@ export const PersonaCard: React.FC<PersonaCardProps> = ({
           </Text>
         </View>
       </LinearGradient>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

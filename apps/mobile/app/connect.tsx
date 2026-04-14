@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Pressable,
   SafeAreaView,
   Linking,
   ActivityIndicator,
@@ -110,7 +111,7 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
                       <Text style={styles.disconnectText}>Disconnect</Text>
                     </TouchableOpacity>
                   ) : (
-                    <TouchableOpacity
+                    <Pressable
                       onPress={() => handleConnect(platform)}
                       style={styles.connectBtn}
                     >
@@ -122,7 +123,7 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
                       >
                         <Text style={styles.connectBtnText}>Connect</Text>
                       </LinearGradient>
-                    </TouchableOpacity>
+                    </Pressable>
                   )}
                 </BlurView>
               );
@@ -130,7 +131,7 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
           </View>
 
           {connectedAccounts.length > 0 && onDone && (
-            <TouchableOpacity onPress={onDone} style={styles.doneBtn}>
+            <Pressable onPress={onDone} style={styles.doneBtn}>
               <LinearGradient
                 colors={["#6c47ff", "#a855f7"]}
                 start={{ x: 0, y: 0 }}
@@ -142,7 +143,7 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
                   {connectedAccounts.length !== 1 ? "s" : ""}) →
                 </Text>
               </LinearGradient>
-            </TouchableOpacity>
+            </Pressable>
           )}
 
           {showSkip && connectedAccounts.length === 0 && onDone && (

@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   SafeAreaView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -135,11 +135,10 @@ const Btn = ({
   onPress: () => void;
   disabled?: boolean;
 }) => (
-  <TouchableOpacity
-    onPress={onPress}
+  <Pressable
+    onPress={() => { console.log("BTN PRESSED:", label); onPress(); }}
     disabled={disabled}
-    activeOpacity={0.85}
-    style={[styles.btn, disabled && styles.btnDisabled]}
+    style={({ pressed }) => [styles.btn, disabled && styles.btnDisabled, pressed && { opacity: 0.8 }]}
   >
     <LinearGradient
       colors={disabled ? ["#333", "#333"] : ["#6c47ff", "#a855f7"]}
@@ -149,7 +148,7 @@ const Btn = ({
     >
       <Text style={styles.btnText}>{label}</Text>
     </LinearGradient>
-  </TouchableOpacity>
+  </Pressable>
 );
 
 const styles = StyleSheet.create({

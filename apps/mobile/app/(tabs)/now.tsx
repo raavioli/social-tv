@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable,
   ActivityIndicator, SafeAreaView, RefreshControl, Share,
   Animated, Dimensions, FlatList,
 } from "react-native";
@@ -129,11 +129,11 @@ export default function TodayScreen() {
             <Text style={styles.emptyEmoji}>📺</Text>
             <Text style={styles.emptyTitle}>Welcome to SocialTV</Text>
             <Text style={styles.emptySub}>Connect your social accounts and we'll turn your feeds into personalised TV channels.</Text>
-            <TouchableOpacity onPress={() => router.push("/connect")} style={styles.connectBtn}>
+            <Pressable onPress={() => router.push("/connect")} style={styles.connectBtn}>
               <LinearGradient colors={["#6c47ff", "#a855f7"]} style={styles.connectBtnGrad}>
                 <Text style={styles.connectBtnText}>Connect Accounts →</Text>
               </LinearGradient>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -149,11 +149,11 @@ export default function TodayScreen() {
             <Text style={styles.greeting}>{greeting}</Text>
             <Text style={styles.showInfo}>📺 SocialTV · {items.length} stories</Text>
           </View>
-          <TouchableOpacity onPress={() => router.push("/bulletin")} style={styles.bulletinChip}>
+          <Pressable onPress={() => router.push("/bulletin")} style={styles.bulletinChip}>
             <LinearGradient colors={["#6c47ff", "#a855f7"]} style={styles.bulletinChipGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
               <Text style={styles.bulletinChipText}>📋 Bulletin</Text>
             </LinearGradient>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Channel strip — horizontal TV channel bar */}
@@ -167,7 +167,7 @@ export default function TodayScreen() {
           renderItem={({ item: ch }) => {
             const isActive = ch.id === activeChannel;
             return (
-              <TouchableOpacity onPress={() => switchChannel(ch.id)} activeOpacity={0.7}>
+              <Pressable onPress={() => switchChannel(ch.id)}>
                 {isActive ? (
                   <LinearGradient colors={[ch.color, ch.colorEnd]} style={[styles.channelPill, styles.channelPillActive]}>
                     <Text style={styles.channelEmoji}>{ch.emoji}</Text>
@@ -179,7 +179,7 @@ export default function TodayScreen() {
                     <Text style={styles.channelLabel}>{ch.label}</Text>
                   </View>
                 )}
-              </TouchableOpacity>
+              </Pressable>
             );
           }}
         />

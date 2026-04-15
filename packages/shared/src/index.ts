@@ -3,6 +3,7 @@ export * from "./bulletin";
 export * from "./tvFormats";
 export * from "./contentVerticals";
 export * from "./programmingClock";
+export * from "./timeSlots";
 
 export type PlatformId = "twitter" | "instagram" | "youtube" | "linkedin";
 

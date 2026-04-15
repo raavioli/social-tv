@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable,
-  SafeAreaView, Animated, Dimensions, Image,
+  SafeAreaView, Animated, Dimensions, Image, Alert, Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { PERSONAS } from "../../src/constants/personas";
+import { TIME_SLOTS, getActiveSlot, type TimeSlotId } from "@social-tv/shared";
 
 const { width: W } = Dimensions.get("window");
 
@@ -54,6 +55,55 @@ export default function DirectorsDeskScreen() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [activeChannelIdx, setActiveChannelIdx] = useState(0);
   const [editMode, setEditMode] = useState(false);
+  const [timeBudget, setTimeBudget] = useState<number | null>(null); // minutes
+  const [budgetStartedAt, setBudgetStartedAt] = useState<number | null>(null);
+
+  const notifyTimeUp = (minutes: number) => {
+    const msg = `That's your ${minutes} min — ${minutes < 5 ? "quick check done." : "wrapping up?"}`;
+    if (Platform.OS === "web") {
+      // Native Alert is unstyled on web; use a confirm() for the extend prompt.
+      const extend = globalThis.confirm?.(msg + "\n\nExtend by 5 min?");
+      if (extend) {
+        setTimeBudget(5);
+        setBudgetStartedAt(Date.now());
+      } else {
+        setTimeBudget(null);
+        setBudgetStartedAt(null);
+      }
+      return;
+    }
+    Alert.alert("Time's up", msg, [
+      { text: "Extend 5 min", onPress: () => { setTimeBudget(5); setBudgetStartedAt(Date.now()); } },
+      { text: "Done", style: "cancel", onPress: () => { setTimeBudget(null); setBudgetStartedAt(null); } },
+    ]);
+  };
+
+  useEffect(() => {
+    if (!timeBudget || timeBudget <= 0 || !budgetStartedAt) return;
+    const ms = timeBudget * 60 * 1000;
+    const id = setTimeout(() => notifyTimeUp(timeBudget), ms);
+    return () => clearTimeout(id);
+  }, [timeBudget, budgetStartedAt]);
+
+  const pickBudget = (m: number) => {
+    const isActive = timeBudget === m;
+    if (isActive) {
+      setTimeBudget(null);
+      setBudgetStartedAt(null);
+    } else {
+      setTimeBudget(m);
+      setBudgetStartedAt(m > 0 ? Date.now() : null);
+    }
+  };
+
+  // Time-slot filter — initializes to the currently-live slot and re-syncs every minute.
+  const [activeSlotId, setActiveSlotId] = useState<TimeSlotId>(() => getActiveSlot().id);
+  useEffect(() => {
+    const id = setInterval(() => setActiveSlotId(getActiveSlot().id), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const activeSlot = TIME_SLOTS.find(s => s.id === activeSlotId) ?? TIME_SLOTS[0];
+  const liveSlotId = getActiveSlot().id;
 
   const persona = PERSONAS.find(p => p.id === settings.selectedPersonaId) ?? PERSONAS[0];
   const greeting = getGreeting();
@@ -117,192 +167,71 @@ export default function DirectorsDeskScreen() {
               <Text style={styles.subGreeting}>Your station, your rules</Text>
             </View>
             <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => setEditMode(!editMode)} style={[styles.editBtn, editMode && styles.editBtnActive]}>
-                <Text style={styles.editBtnText}>{editMode ? "✓ Done" : "✏️"}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push("/onboarding" as any)}>
+              <Pressable onPress={() => router.push("/programming-board" as any)} hitSlop={8}>
+                <Text style={styles.headerIcon}>🎛️</Text>
+              </Pressable>
+              <Pressable onPress={() => router.push("/channels" as any)} hitSlop={8}>
+                <Text style={styles.headerIcon}>📺</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  const keys = [null, ...MOODS.map(m => m.id)];
+                  const next = keys[(keys.indexOf(selectedMood) + 1) % keys.length];
+                  setSelectedMood(next);
+                }}
+                hitSlop={8}
+              >
+                <Text style={styles.headerIcon}>
+                  {selectedMood ? MOODS.find(m => m.id === selectedMood)?.emoji : "🎭"}
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => router.push("/onboarding" as any)}>
                 <Text style={styles.presenterChip}>{persona.avatarEmoji}</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
 
-          {/* ── PRESENTER ── */}
-          <Pressable
-            style={styles.presenterSection}
-            onPress={() => router.push("/onboarding" as any)}
-          >
-            <View style={styles.presenterRow}>
-              <Animated.View style={[styles.presenterAvatar, { backgroundColor: persona.accentColor + "20", transform: [{ translateY: floatAnim }] }]}>
-                <Text style={styles.presenterAvatarEmoji}>{persona.avatarEmoji}</Text>
-              </Animated.View>
-              <View style={styles.presenterInfo}>
-                <Text style={styles.presenterName}>{persona.name}</Text>
-                <Text style={styles.presenterLine}>{presenterLine}</Text>
-              </View>
-            </View>
-            <View style={styles.waveRow}>
-              {waveAnims.map((h, i) => (
-                <Animated.View
-                  key={i}
-                  style={[styles.waveBar, { height: h, backgroundColor: persona.accentColor + "50" }]}
-                />
-              ))}
-            </View>
-          </Pressable>
-
-          {/* ── LIVE PREVIEW ── */}
-          <Pressable
-            style={styles.livePreview}
-            onPress={() => router.push({ pathname: "/(tabs)/now", params: { channel: activeChannel.id } } as any)}
-          >
-            <LinearGradient colors={[activeChannel.color + "30", "#0a0a0f"]} style={styles.livePreviewGrad}>
-              {/* Channel indicator */}
-              <View style={styles.liveHeader}>
-                <View style={styles.liveChannelBadge}>
-                  <View style={[styles.liveDot, { backgroundColor: activeChannel.color }]} />
-                  <Text style={styles.liveLabel}>ON AIR</Text>
-                </View>
-                <Text style={styles.liveChannelName}>{activeChannel.emoji} {activeChannel.name}</Text>
-              </View>
-
-              {/* Top story preview */}
-              <Text style={styles.liveHeadline}>{activeStory.topStory}</Text>
-              <Text style={styles.liveStoryCount}>{activeStory.stories} stories ready</Text>
-
-              {/* GO LIVE button */}
-              <LinearGradient colors={[activeChannel.color, activeChannel.color + "cc"]} style={styles.goLiveBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                <Text style={styles.goLiveText}>▶  WATCH NOW</Text>
-              </LinearGradient>
-            </LinearGradient>
-          </Pressable>
-
-          {/* ── CHANNEL SWITCHER STRIP ── */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.switcherStrip}>
-            {channels.map((ch, idx) => {
-              const isActive = idx === activeChannelIdx;
-              return (
-                <Pressable
-                  key={ch.id}
-                  onPress={() => setActiveChannelIdx(idx)}
-                  style={[styles.switcherBtn, isActive && { borderColor: ch.color, backgroundColor: ch.color + "15" }]}
-                >
-                  <Text style={styles.switcherEmoji}>{ch.emoji}</Text>
-                  <Text style={[styles.switcherLabel, isActive && { color: ch.color }]}>{ch.name}</Text>
-                  {isActive && <View style={[styles.switcherDot, { backgroundColor: ch.color }]} />}
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-
-          {/* ── MOOD BAR ── */}
+          {/* ── TIME BUDGET ── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>MOOD</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moodRow}>
-              {MOODS.map(mood => {
-                const isActive = selectedMood === mood.id;
+            <Text style={styles.sectionTitle}>HOW MUCH TIME DO YOU HAVE?</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.budgetRow}>
+              {[
+                { m: 1,  label: "1 min",  emoji: "⚡" },
+                { m: 5,  label: "5 min",  emoji: "☕" },
+                { m: 15, label: "15 min", emoji: "📺" },
+                { m: 30, label: "30 min", emoji: "🛋️" },
+                { m: 0,  label: "Full",   emoji: "🎬" },
+              ].map(b => {
+                const isActive = timeBudget === b.m;
                 return (
-                  <TouchableOpacity
-                    key={mood.id}
-                    style={[styles.moodChip, isActive && { backgroundColor: mood.color + "25", borderColor: mood.color }]}
-                    onPress={() => setSelectedMood(isActive ? null : mood.id)}
+                  <Pressable
+                    key={b.m}
+                    onPress={() => pickBudget(b.m)}
+                    style={[styles.budgetChip, isActive && styles.budgetChipActive]}
                   >
-                    <Text style={styles.moodEmoji}>{mood.emoji}</Text>
-                    <Text style={[styles.moodLabel, isActive && { color: mood.color }]}>{mood.label}</Text>
-                  </TouchableOpacity>
+                    <Text style={styles.budgetEmoji}>{b.emoji}</Text>
+                    <Text style={[styles.budgetLabel, isActive && { color: "#fff" }]}>{b.label}</Text>
+                  </Pressable>
                 );
               })}
             </ScrollView>
           </View>
 
-          {/* ── QUICK PROGRAMMES ── */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>QUICK PROGRAMMES</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.progRow}>
-              {QUICK_PROGRAMMES.map(prog => (
-                <Pressable key={prog.id} onPress={() => router.push(prog.route as any)}>
-                  <LinearGradient colors={[prog.color + "20", prog.color + "08"]} style={styles.progCard}>
-                    <Text style={styles.progEmoji}>{prog.emoji}</Text>
-                    <Text style={styles.progLabel}>{prog.label}</Text>
-                    <Text style={styles.progSub}>{prog.sub}</Text>
-                  </LinearGradient>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-
-          {/* ── CHANNEL LINEUP ── */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{editMode ? "REORDER YOUR LINEUP" : "YOUR CHANNELS"}</Text>
-            {channels.map((ch, idx) => (
-              <Pressable
-                key={ch.id}
-                style={[styles.channelRow, activeChannelIdx === idx && { borderColor: ch.color + "40" }]}
-                onPress={() => {
-                  if (editMode) return;
-                  setActiveChannelIdx(idx);
-                  router.push({ pathname: "/(tabs)/now", params: { channel: ch.id } } as any);
-                }}
-              >
-                {/* Channel number */}
-                <Text style={styles.chNum}>CH{idx + 1}</Text>
-
-                {/* Icon */}
-                <LinearGradient colors={[ch.color, ch.color + "88"]} style={styles.chIcon}>
-                  <Text style={styles.chIconEmoji}>{ch.emoji}</Text>
+          {/* ── TILES (iPhone-style grid) ── */}
+          <View style={styles.tileGrid}>
+            {QUICK_PROGRAMMES.map(prog => (
+              <Pressable key={prog.id} style={styles.tileWrap} onPress={() => router.push(prog.route as any)}>
+                <LinearGradient colors={[prog.color + "30", prog.color + "10"]} style={styles.tile}>
+                  <Text style={styles.tileEmoji}>{prog.emoji}</Text>
+                  <Text style={styles.tileLabel}>{prog.label}</Text>
+                  <Text style={styles.tileSub}>{prog.sub}</Text>
                 </LinearGradient>
-
-                {/* Info */}
-                <View style={styles.chInfo}>
-                  <Text style={styles.chName}>{ch.name}</Text>
-                  <Text style={styles.chPreview} numberOfLines={1}>{(CHANNEL_STORIES[ch.id] ?? DEFAULT_STORY).topStory}</Text>
-                </View>
-
-                {editMode ? (
-                  <View style={styles.reorderBtns}>
-                    <TouchableOpacity onPress={() => moveChannel(idx, "up")} style={styles.reorderBtn}>
-                      <Text style={styles.reorderText}>▲</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => moveChannel(idx, "down")} style={styles.reorderBtn}>
-                      <Text style={styles.reorderText}>▼</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View style={styles.chMeta}>
-                    <Text style={[styles.chCount, { color: ch.color }]}>{(CHANNEL_STORIES[ch.id] ?? DEFAULT_STORY).stories}</Text>
-                    <View style={[styles.chLive, { backgroundColor: ch.color + "20" }]}>
-                      <View style={[styles.chLiveDot, { backgroundColor: ch.color }]} />
-                    </View>
-                  </View>
-                )}
               </Pressable>
             ))}
-
-            {/* New Channel button */}
-            <Pressable style={styles.newChannelBtn} onPress={() => router.push("/channel-creator" as any)}>
-              <LinearGradient colors={["rgba(108,71,255,0.15)", "rgba(108,71,255,0.05)"]} style={styles.newChannelBtnGrad}>
-                <Text style={styles.newChannelPlus}>+</Text>
-                <Text style={styles.newChannelText}>Create New Channel</Text>
-              </LinearGradient>
-            </Pressable>
           </View>
 
-          {/* ── BOTTOM SHORTCUTS ── */}
-          <View style={styles.shortcuts}>
-            <Pressable style={styles.shortcutBtn} onPress={() => router.push("/programming-board" as any)}>
-              <Text style={styles.shortcutEmoji}>🎛️</Text>
-              <Text style={styles.shortcutLabel}>Programming</Text>
-            </Pressable>
-            <Pressable style={styles.shortcutBtn} onPress={() => router.push("/connect" as any)}>
-              <Text style={styles.shortcutEmoji}>🔗</Text>
-              <Text style={styles.shortcutLabel}>Sources</Text>
-            </Pressable>
-            <Pressable style={styles.shortcutBtn} onPress={() => router.push("/programming/filters" as any)}>
-              <Text style={styles.shortcutEmoji}>🎛️</Text>
-              <Text style={styles.shortcutLabel}>Filters</Text>
-            </Pressable>
-          </View>
-
-          <View style={{ height: 100 }} />
+          {/* dock rendered globally via _layout.tsx → BottomDock */}
+          <View style={{ height: 180 }} />
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>
@@ -364,12 +293,30 @@ const styles = StyleSheet.create({
   moodEmoji: { fontSize: 16 },
   moodLabel: { color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: "700" },
 
-  // Quick programmes
+  // Time budget
+  budgetRow: { gap: 8, paddingRight: 16 },
+  budgetChip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.04)", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  budgetChipActive: { backgroundColor: "rgba(108,71,255,0.2)", borderColor: "#6c47ff" },
+  budgetEmoji: { fontSize: 15 },
+  budgetLabel: { color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: "700" },
+
+  // Quick programmes (legacy — still used by channel list)
+  progHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  iconRow: { flexDirection: "row", gap: 14 },
+  headerIcon: { fontSize: 18, opacity: 0.7 },
   progRow: { gap: 10, paddingRight: 16 },
   progCard: { width: 100, padding: 14, borderRadius: 14, gap: 6, borderWidth: 1, borderColor: "rgba(255,255,255,0.04)" },
   progEmoji: { fontSize: 22 },
   progLabel: { color: "#fff", fontSize: 12, fontWeight: "800" },
   progSub: { color: "rgba(255,255,255,0.3)", fontSize: 10 },
+
+  // Tile grid (iPhone-style home)
+  tileGrid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 16, marginTop: 16, gap: 12, justifyContent: "center" },
+  tileWrap: { width: "30%", aspectRatio: 1, maxWidth: 120 },
+  tile: { flex: 1, padding: 14, borderRadius: 20, gap: 6, justifyContent: "space-between", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  tileEmoji: { fontSize: 32 },
+  tileLabel: { color: "#fff", fontSize: 14, fontWeight: "800" },
+  tileSub: { color: "rgba(255,255,255,0.4)", fontSize: 11 },
 
   // Channel lineup
   channelRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 6, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.03)", borderWidth: 1, borderColor: "rgba(255,255,255,0.04)" },
@@ -392,6 +339,18 @@ const styles = StyleSheet.create({
   newChannelBtnGrad: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14 },
   newChannelPlus: { color: "#6c47ff", fontSize: 20, fontWeight: "700" },
   newChannelText: { color: "#6c47ff", fontSize: 13, fontWeight: "800" },
+
+  // Time slots
+  slotHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  slotNow: { color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: "700" },
+  slotRow: { gap: 8, paddingRight: 16 },
+  slotCard: { minWidth: 100, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.03)", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", alignItems: "flex-start", gap: 4, position: "relative" },
+  slotCardActive: { borderColor: "#6c47ff", backgroundColor: "rgba(108,71,255,0.12)" },
+  slotCardLive: { borderColor: "#10b981" },
+  slotLiveDot: { position: "absolute", top: 8, right: 8, width: 6, height: 6, borderRadius: 3, backgroundColor: "#10b981" },
+  slotEmoji: { fontSize: 20 },
+  slotLabel: { color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: "800" },
+  slotTime: { color: "rgba(255,255,255,0.35)", fontSize: 10 },
 
   // Bottom shortcuts
   shortcuts: { flexDirection: "row", justifyContent: "center", gap: 20, marginTop: 20, paddingHorizontal: 16 },

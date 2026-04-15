@@ -4,6 +4,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAppStore } from "../src/store/useAppStore";
+import BottomDock from "../src/components/BottomDock";
 
 export default function RootLayout() {
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
@@ -40,6 +41,7 @@ export default function RootLayout() {
         <Stack.Screen name="channel-creator" />
         <Stack.Screen name="programming-board" />
       </Stack>
+      <BottomDock />
     </View>
   );
 }

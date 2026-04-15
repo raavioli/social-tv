@@ -40,3 +40,9 @@ redis_data/
 
 # Test coverage
 coverage/
+
+# Expo web export
+apps/mobile/dist/
+
+# Demo screenshots
+scripts/screenshots/

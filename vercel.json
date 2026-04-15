@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "yarn install --frozen-lockfile && cd apps/mobile && NODE_OPTIONS='--dns-result-order=ipv4first' npx expo export -p web",
+  "outputDirectory": "apps/mobile/dist",
+  "installCommand": "echo skip",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/manifest.webmanifest",
+      "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }]
+    }
+  ]
+}

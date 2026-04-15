@@ -1,23 +1,20 @@
 import { ScrollViewStyleReset } from "expo-router/html";
 import type { PropsWithChildren } from "react";
 
-// Dev-time SW + cache killer. Runs before any app JS so stale workers can't
-// serve cached HTML/bundles after code changes. Prod builds skip this.
+// SW + cache killer — runs on every load while we iterate (incl. Vercel previews).
+// Flip to a proper SW story once UX stabilises.
 const DEV_SW_NUKE = `
 (function () {
-  var h = location.hostname;
-  var devHost = h === 'localhost' || h === '127.0.0.1' || h.endsWith('.local');
-  if (!devHost) return;
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function (rs) {
       var had = rs.length > 0;
       rs.forEach(function (r) { r.unregister(); });
-      if (had) console.log('[dev] unregistered ' + rs.length + ' service worker(s)');
+      if (had) console.log('[sw] unregistered ' + rs.length);
     }).catch(function () {});
   }
   if (typeof caches !== 'undefined' && caches.keys) {
     caches.keys().then(function (keys) {
-      if (keys.length > 0) console.log('[dev] clearing ' + keys.length + ' cache(s)');
+      if (keys.length > 0) console.log('[sw] cleared ' + keys.length + ' cache(s)');
       keys.forEach(function (k) { caches.delete(k); });
     }).catch(function () {});
   }

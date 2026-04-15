@@ -11,7 +11,6 @@ node_modules/
 .yarn/install-state.gz
 
 # Build outputs
-dist/
 build/
 .expo/
 *.tsbuildinfo
@@ -42,7 +41,7 @@ redis_data/
 coverage/
 
 # Expo web export
-apps/mobile/dist/
+
 
 # Demo screenshots
 scripts/screenshots/

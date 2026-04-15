@@ -288,9 +288,9 @@ export default function DirectorsDeskScreen() {
 
           {/* ── BOTTOM SHORTCUTS ── */}
           <View style={styles.shortcuts}>
-            <Pressable style={styles.shortcutBtn} onPress={() => router.push("/programming" as any)}>
-              <Text style={styles.shortcutEmoji}>📋</Text>
-              <Text style={styles.shortcutLabel}>Schedule</Text>
+            <Pressable style={styles.shortcutBtn} onPress={() => router.push("/programming-board" as any)}>
+              <Text style={styles.shortcutEmoji}>🎛️</Text>
+              <Text style={styles.shortcutLabel}>Programming</Text>
             </Pressable>
             <Pressable style={styles.shortcutBtn} onPress={() => router.push("/connect" as any)}>
               <Text style={styles.shortcutEmoji}>🔗</Text>

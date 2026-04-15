@@ -38,6 +38,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="connect" />
         <Stack.Screen name="channel-creator" />
+        <Stack.Screen name="programming-board" />
       </Stack>
     </View>
   );

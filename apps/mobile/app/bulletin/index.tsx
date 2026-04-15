@@ -4,7 +4,6 @@ import {
   SafeAreaView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import {
   PROGRAMMING_CLOCK,
@@ -69,6 +68,11 @@ export default function NowShowingScreen() {
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+
+          {/* Back button */}
+          <TouchableOpacity onPress={() => router.back()} style={{ paddingTop: 8, paddingBottom: 4 }}>
+            <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
+          </TouchableOpacity>
 
           {/* Header */}
           <View style={styles.header}>
@@ -157,7 +161,7 @@ export default function NowShowingScreen() {
                 </View>
 
                 {/* Content */}
-                <BlurView intensity={isCurrent ? 30 : 15} tint="dark" style={[styles.slotCard, isCurrent && styles.slotCardCurrent]}>
+                <View style={[styles.slotCard, isCurrent && styles.slotCardCurrent, { backgroundColor: isCurrent ? "rgba(108,71,255,0.12)" : "rgba(255,255,255,0.04)" }]}>
                   <View style={styles.slotCardInner}>
                     <View style={styles.slotLeft}>
                       <Text style={styles.slotEmoji}>{slot.emoji}</Text>
@@ -171,7 +175,7 @@ export default function NowShowingScreen() {
                       {isCurrent && <View style={styles.onAirDot} />}
                     </View>
                   </View>
-                </BlurView>
+                </View>
               </TouchableOpacity>
             );
           })}

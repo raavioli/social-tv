@@ -14,7 +14,6 @@ import {
   Linking,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { router, useLocalSearchParams } from "expo-router";
 import { impact } from "../../src/lib/haptics";
 import { MoodId, BulletinStory } from "@social-tv/shared";
@@ -87,7 +86,7 @@ export default function TopN() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.back}>←</Text>
+            <Text style={styles.back}>← Back</Text>
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.heading}>{fmt?.emoji} {fmt?.name}</Text>

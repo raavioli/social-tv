@@ -4,7 +4,6 @@ import {
   SafeAreaView, TextInput,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import { useAppStore, ScheduledShow } from "../../src/store/useAppStore";
 import { TV_FORMATS, FORMAT_GROUPS } from "@social-tv/shared";
@@ -112,7 +111,7 @@ export default function AddShowScreen() {
           <ScrollView contentContainerStyle={styles.scroll}>
             {/* Show name */}
             <Text style={styles.sectionLabel}>Show name</Text>
-            <BlurView intensity={20} tint="dark" style={styles.inputCard}>
+            <View style={[styles.inputCard, { backgroundColor: "rgba(255,255,255,0.04)" }]}>
               <TextInput
                 value={label}
                 onChangeText={setLabel}
@@ -120,7 +119,7 @@ export default function AddShowScreen() {
                 placeholderTextColor="rgba(255,255,255,0.2)"
                 placeholder="My Morning Show"
               />
-            </BlurView>
+            </View>
 
             {/* Days */}
             <Text style={styles.sectionLabel}>Days</Text>

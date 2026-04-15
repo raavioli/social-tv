@@ -13,7 +13,6 @@ import {
   Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { router, useLocalSearchParams } from "expo-router";
 import { impact } from "../../src/lib/haptics";
 import { MoodId, BulletinStory } from "@social-tv/shared";
@@ -161,11 +160,11 @@ export default function HundredInHundred() {
 
         {/* Header */}
         <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>100 in 100</Text>
           <Text style={styles.timer}>{secondsLeft}s left</Text>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.closeBtn}>✕</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Tick progress */}

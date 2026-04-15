@@ -4,7 +4,6 @@ import {
   SafeAreaView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 
 const MOCK_MISSED = [
@@ -43,7 +42,7 @@ export default function PreviouslyOnScreen() {
           keyExtractor={i => i.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <BlurView intensity={20} tint="dark" style={styles.card}>
+            <View style={[styles.card, { backgroundColor: "rgba(255,255,255,0.04)" }]}>
               <View style={styles.cardRow}>
                 <View style={[styles.platformDot, { backgroundColor: item.platformColor }]}>
                   <Text style={styles.platformEmoji}>{item.emoji}</Text>
@@ -57,7 +56,7 @@ export default function PreviouslyOnScreen() {
                   <Text style={styles.dismiss}>✕</Text>
                 </TouchableOpacity>
               </View>
-            </BlurView>
+            </View>
           )}
           ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
           ListEmptyComponent={() => (

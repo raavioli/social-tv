@@ -4,7 +4,6 @@ import {
   SafeAreaView, Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 
 const PLATFORMS: Record<string, { emoji: string; color: string }> = {
@@ -82,7 +81,7 @@ export default function LiveFeedScreen() {
           renderItem={({ item, index }) => {
             const p = PLATFORMS[item.platform] ?? { emoji: "📱", color: "#666" };
             return (
-              <BlurView intensity={15} tint="dark" style={[styles.card, index === 0 && styles.cardNew]}>
+              <View style={[styles.card, index === 0 && styles.cardNew, { backgroundColor: "rgba(255,255,255,0.04)" }]}>
                 <View style={styles.cardRow}>
                   <View style={[styles.dot, { backgroundColor: p.color }]}>
                     <Text style={styles.dotEmoji}>{p.emoji}</Text>
@@ -90,7 +89,7 @@ export default function LiveFeedScreen() {
                   <Text style={styles.summary}>{item.summary}</Text>
                   <Text style={styles.ago}>{item.ago}</Text>
                 </View>
-              </BlurView>
+              </View>
             );
           }}
           ItemSeparatorComponent={() => <View style={{ height: 4 }} />}

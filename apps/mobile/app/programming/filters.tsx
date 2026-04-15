@@ -4,7 +4,6 @@ import {
   SafeAreaView, TextInput,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 
@@ -43,7 +42,7 @@ export default function FiltersScreen() {
             <Text style={styles.desc}>Stories containing these keywords will be hidden from all formats.</Text>
 
             {/* Add keyword */}
-            <BlurView intensity={20} tint="dark" style={styles.addRow}>
+            <View style={[styles.addRow, { backgroundColor: "rgba(255,255,255,0.04)" }]}>
               <TextInput
                 value={newKeyword}
                 onChangeText={setNewKeyword}
@@ -68,7 +67,7 @@ export default function FiltersScreen() {
               >
                 <Text style={styles.addBtnText}>+ Mute</Text>
               </TouchableOpacity>
-            </BlurView>
+            </View>
 
             {/* Keyword list */}
             {mutedKeywords.length === 0 && (
@@ -107,7 +106,7 @@ export default function FiltersScreen() {
             <Text style={styles.desc}>Boost specific accounts to the top of your feed, or mute them entirely.</Text>
 
             {/* Add source */}
-            <BlurView intensity={20} tint="dark" style={styles.addSourceCard}>
+            <View style={[styles.addSourceCard, { backgroundColor: "rgba(255,255,255,0.04)" }]}>
               <View style={styles.platformRow}>
                 {PLATFORMS.map(p => (
                   <TouchableOpacity key={p} style={[styles.platformBtn, newPlatform === p && styles.platformBtnActive]} onPress={() => setNewPlatform(p)}>
@@ -146,13 +145,13 @@ export default function FiltersScreen() {
                   <Text style={styles.muteSourceBtnText}>🔇 Mute source</Text>
                 </TouchableOpacity>
               </View>
-            </BlurView>
+            </View>
 
             {pinnedSources.length === 0 && (
               <Text style={styles.emptyNote}>No sources pinned yet.</Text>
             )}
             {pinnedSources.map(src => (
-              <BlurView key={src.id} intensity={20} tint="dark" style={styles.sourceCard}>
+              <View key={src.id} style={[styles.sourceCard, { backgroundColor: "rgba(255,255,255,0.04)" }]}>
                 <View style={styles.sourceRow}>
                   <View style={[styles.boostDot, { backgroundColor: src.boosted ? "#10b981" : "#ef4444" }]} />
                   <View style={styles.sourceInfo}>
@@ -166,7 +165,7 @@ export default function FiltersScreen() {
                     <Text style={styles.removeText}>✕</Text>
                   </TouchableOpacity>
                 </View>
-              </BlurView>
+              </View>
             ))}
           </ScrollView>
         )}

@@ -90,7 +90,7 @@ export default function Top10QuickScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.close}>✕</Text>
+            <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>⚡ 10 in 1 min</Text>
           <TouchableOpacity onPress={() => setPaused(p => !p)}>

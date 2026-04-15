@@ -85,7 +85,7 @@ export default function BulletinScheduler() {
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.back}>←</Text>
+              <Text style={styles.back}>← Back</Text>
             </TouchableOpacity>
             <View>
               <Text style={styles.heading}>My Schedule 📅</Text>

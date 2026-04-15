@@ -4,7 +4,6 @@ import {
   SafeAreaView, Switch,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import { useAppStore, ScheduledShow } from "../../src/store/useAppStore";
 import { TV_FORMATS, CONTENT_VERTICALS, MOOD_VERTICAL_AFFINITY } from "@social-tv/shared";
@@ -129,7 +128,7 @@ export default function ProgrammingScreen() {
             ) : sorted.map(show => {
               const fmt = TV_FORMATS.find(f => f.id === show.formatId);
               return (
-                <BlurView key={show.id} intensity={20} tint="dark" style={[styles.showCard, !show.enabled && styles.showCardOff]}>
+                <View key={show.id} style={[styles.showCard, !show.enabled && styles.showCardOff, { backgroundColor: "rgba(255,255,255,0.04)" }]}>
                   <View style={styles.showTop}>
                     <View style={styles.showLeft}>
                       <Text style={styles.showEmoji}>{fmt?.emoji ?? "📺"}</Text>
@@ -163,7 +162,7 @@ export default function ProgrammingScreen() {
                       <Text style={styles.deleteText}>🗑</Text>
                     </TouchableOpacity>
                   </View>
-                </BlurView>
+                </View>
               );
             })}
             <View style={{ height: 40 }} />
@@ -200,7 +199,7 @@ function TVGuideView({ shows }: { shows: ScheduledShow[] }) {
           const fmt = TV_FORMATS.find(f => f.id === show.formatId);
           const endMin = show.minute + show.maxMinutes;
           return (
-            <BlurView key={show.id} intensity={20} tint="dark" style={styles.guideRow}>
+            <View key={show.id} style={[styles.guideRow, { backgroundColor: "rgba(255,255,255,0.04)" }]}>
               <View style={styles.guideTimeCol}>
                 <Text style={styles.guideTimeText}>{formatTime(show.hour, show.minute)}</Text>
                 <Text style={styles.guideTimeEnd}>{formatTime(show.hour + Math.floor(endMin / 60), endMin % 60)}</Text>
@@ -212,7 +211,7 @@ function TVGuideView({ shows }: { shows: ScheduledShow[] }) {
                   <Text style={styles.guideBlockSub}>{fmt?.tvAnalogy} · {show.maxMinutes}min</Text>
                 </View>
               </LinearGradient>
-            </BlurView>
+            </View>
           );
         })}
         <View style={{ height: 40 }} />

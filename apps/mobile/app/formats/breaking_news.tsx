@@ -4,7 +4,6 @@ import {
   SafeAreaView, StatusBar, ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 
@@ -34,6 +33,11 @@ export default function BreakingNewsScreen() {
     <LinearGradient colors={["#0a0000", "#1a0000"]} style={styles.bg}>
       <StatusBar barStyle="light-content" backgroundColor="#cc0000" />
       <SafeAreaView style={styles.safe}>
+        {/* Back button */}
+        <TouchableOpacity onPress={() => router.back()} style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+          <Text style={{ color: "#ff6600", fontSize: 16 }}>← Back</Text>
+        </TouchableOpacity>
+
         {/* Breaking banner */}
         <Animated.View style={[styles.banner, { opacity: flashAnim }]}>
           <LinearGradient colors={["#cc0000", "#ff2200"]} style={styles.bannerGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
@@ -51,7 +55,7 @@ export default function BreakingNewsScreen() {
               onPress={() => setActiveIdx(i)}
               activeOpacity={0.8}
             >
-              <BlurView intensity={20} tint="dark" style={styles.cardBlur}>
+              <View style={[styles.cardBlur, { backgroundColor: "rgba(30,0,0,0.7)" }]}>
                 <View style={styles.cardRow}>
                   <View style={[styles.urgencyDot, { backgroundColor: item.urgency >= 9 ? "#ff2200" : item.urgency >= 7 ? "#ff6600" : "#ffaa00" }]} />
                   <View style={styles.cardContent}>
@@ -62,7 +66,7 @@ export default function BreakingNewsScreen() {
                     </View>
                   </View>
                 </View>
-              </BlurView>
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>

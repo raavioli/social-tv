@@ -14,7 +14,6 @@ import {
   Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { router, useLocalSearchParams } from "expo-router";
 import { impact, selection } from "../../src/lib/haptics";
 import { useAppStore } from "../../src/store/useAppStore";
@@ -195,11 +194,14 @@ export default function FlashBriefing() {
 
         {/* Top bar */}
         <View style={styles.topBar}>
-          <BlurView intensity={20} tint="dark" style={styles.modePill}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
+          </TouchableOpacity>
+          <View style={[styles.modePill, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
             <Text style={styles.modeText}>
               {moodObj?.emoji} Flash · {minutes}min
             </Text>
-          </BlurView>
+          </View>
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={styles.closeBtn}>✕</Text>
           </TouchableOpacity>
@@ -215,27 +217,27 @@ export default function FlashBriefing() {
         <View style={styles.content}>
           {/* Rank + relevance */}
           <View style={styles.metaRow}>
-            <BlurView intensity={25} tint="dark" style={styles.rankPill}>
+            <View style={[styles.rankPill, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
               <Text style={styles.rankText}>#{story.rank}</Text>
-            </BlurView>
-            <BlurView intensity={25} tint="dark" style={styles.rankPill}>
+            </View>
+            <View style={[styles.rankPill, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
               <Text style={styles.rankText}>
                 {Math.round(story.relevanceScore * 10)}% match
               </Text>
-            </BlurView>
-            <BlurView intensity={25} tint="dark" style={styles.rankPill}>
+            </View>
+            <View style={[styles.rankPill, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
               <Text style={styles.rankText}>{story.platform}</Text>
-            </BlurView>
+            </View>
           </View>
 
           <Text style={styles.headline}>{story.headline}</Text>
           <Text style={styles.oneliner}>{story.oneliner}</Text>
 
           {/* Why it matters */}
-          <BlurView intensity={20} tint="dark" style={styles.whyBox}>
+          <View style={[styles.whyBox, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
             <Text style={styles.whyLabel}>Why it matters to you</Text>
             <Text style={styles.whyText}>{story.whyItMatters}</Text>
-          </BlurView>
+          </View>
 
           {/* Actions */}
           <View style={styles.actions}>

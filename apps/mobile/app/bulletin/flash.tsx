@@ -150,7 +150,7 @@ export default function FlashBriefing() {
           <Text style={styles.loadingSubtext}>
             {stories.length} stories in ~{minutes} minutes
           </Text>
-          <TouchableOpacity onPress={() => router.back()} style={styles.doneBtn}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} style={styles.doneBtn}>
             <LinearGradient colors={["#6c47ff", "#a855f7"]} style={styles.doneBtnGrad}>
               <Text style={styles.doneBtnText}>Back to channels →</Text>
             </LinearGradient>
@@ -194,7 +194,7 @@ export default function FlashBriefing() {
 
         {/* Top bar */}
         <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
           </TouchableOpacity>
           <View style={[styles.modePill, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
@@ -202,7 +202,7 @@ export default function FlashBriefing() {
               {moodObj?.emoji} Flash · {minutes}min
             </Text>
           </View>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <Text style={styles.closeBtn}>✕</Text>
           </TouchableOpacity>
         </View>

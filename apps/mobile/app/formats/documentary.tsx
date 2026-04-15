@@ -32,7 +32,7 @@ export default function DocumentaryScreen() {
       <SafeAreaView style={styles.safe}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <Text style={styles.back}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.formatLabel}>🔭 DOCUMENTARY</Text>

@@ -45,14 +45,14 @@ export default function AddShowScreen() {
       notifyBefore: 5,
     };
     addScheduledShow(show);
-    router.back();
+    router.canGoBack() ? router.back() : router.replace("/(tabs)");
   };
 
   return (
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => step === "schedule" ? setStep("format") : router.back()}>
+          <TouchableOpacity onPress={() => step === "schedule" ? setStep("format") : router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <Text style={styles.back}>{step === "schedule" ? "← Back" : "✕ Cancel"}</Text>
           </TouchableOpacity>
           <Text style={styles.title}>+ Add Show</Text>

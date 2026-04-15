@@ -126,7 +126,7 @@ export default function TodayScreen() {
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         {/* Back to Director's Desk */}
-        <TouchableOpacity onPress={() => router.back()} style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 }}>
+        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 }}>
           <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
         </TouchableOpacity>
 

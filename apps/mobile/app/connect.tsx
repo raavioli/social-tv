@@ -54,7 +54,7 @@ export default function ConnectScreen({ onDone, showSkip = false }: ConnectScree
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 8 }}>
-          <TouchableOpacity onPress={() => router.back()} style={{ paddingVertical: 8, paddingRight: 16 }}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} style={{ paddingVertical: 8, paddingRight: 16 }}>
             <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
           </TouchableOpacity>
         </View>

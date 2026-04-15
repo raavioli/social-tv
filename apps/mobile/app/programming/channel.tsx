@@ -29,7 +29,7 @@ export default function ChannelConfigScreen() {
     <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <Text style={styles.back}>← Back</Text>
           </TouchableOpacity>
           <View style={{ width: 60 }} />

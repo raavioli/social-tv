@@ -32,7 +32,7 @@ export default function FormatScreen() {
     return (
       <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
         <SafeAreaView style={styles.safe}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} style={styles.backBtn}>
             <Text style={styles.backText}>← Back</Text>
           </TouchableOpacity>
           <View style={styles.center}>
@@ -48,7 +48,7 @@ export default function FormatScreen() {
       <SafeAreaView style={styles.safe}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <Text style={styles.back}>← Back</Text>
           </TouchableOpacity>
           <View style={styles.headerCenter}>

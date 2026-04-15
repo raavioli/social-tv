@@ -34,7 +34,7 @@ export default function BreakingNewsScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#cc0000" />
       <SafeAreaView style={styles.safe}>
         {/* Back button */}
-        <TouchableOpacity onPress={() => router.back()} style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
           <Text style={{ color: "#ff6600", fontSize: 16 }}>← Back</Text>
         </TouchableOpacity>
 
@@ -81,7 +81,7 @@ export default function BreakingNewsScreen() {
         </View>
 
         {/* Close */}
-        <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.closeBtn} onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
           <Text style={styles.closeBtnText}>✕ Close</Text>
         </TouchableOpacity>
       </SafeAreaView>

@@ -95,7 +95,7 @@ export default function ChannelCreatorScreen() {
     } else {
       addCustomChannel(channel);
     }
-    router.back();
+    router.canGoBack() ? router.back() : router.replace("/(tabs)");
   };
 
   return (
@@ -103,7 +103,7 @@ export default function ChannelCreatorScreen() {
       <SafeAreaView style={styles.safe}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <Text style={styles.backBtn}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.title}>{existing ? "Edit Channel" : "New Channel"}</Text>

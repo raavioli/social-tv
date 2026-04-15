@@ -75,7 +75,7 @@ export default function Top10QuickScreen() {
             <Text style={styles.doneEmoji}>✅</Text>
             <Text style={styles.doneTitle}>All caught up!</Text>
             <Text style={styles.doneSub}>You just covered your top 10 in under a minute.</Text>
-            <TouchableOpacity style={styles.doneBtn} onPress={() => router.back()}>
+            <TouchableOpacity style={styles.doneBtn} onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
               <Text style={styles.doneBtnText}>← Back to TV</Text>
             </TouchableOpacity>
           </View>
@@ -89,7 +89,7 @@ export default function Top10QuickScreen() {
       <SafeAreaView style={styles.safe}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>⚡ 10 in 1 min</Text>

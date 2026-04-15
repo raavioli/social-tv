@@ -120,7 +120,7 @@ export default function HundredInHundred() {
     return (
       <LinearGradient colors={["#0a0a0f", "#0f0a1e"]} style={styles.bg}>
         <SafeAreaView style={styles.center}>
-          <TouchableOpacity onPress={() => router.back()} style={{ position: "absolute", top: 16, right: 20, padding: 10 }}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} style={{ position: "absolute", top: 16, right: 20, padding: 10 }}>
             <Text style={{ color: "#fff", fontSize: 22, fontWeight: "800" }}>✕</Text>
           </TouchableOpacity>
           <Text style={styles.bigNum}>100</Text>
@@ -137,7 +137,7 @@ export default function HundredInHundred() {
           <Text style={styles.bigNum}>✅</Text>
           <Text style={styles.loadingText}>100 headlines done!</Text>
           <Text style={styles.savedCount}>{saved.size} saved</Text>
-          <TouchableOpacity onPress={() => router.back()} style={styles.doneBtn}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} style={styles.doneBtn}>
             <LinearGradient colors={["#6c47ff", "#a855f7"]} style={styles.doneBtnGrad}>
               <Text style={styles.doneBtnText}>Back to channels →</Text>
             </LinearGradient>
@@ -160,7 +160,7 @@ export default function HundredInHundred() {
 
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>100 in 100</Text>

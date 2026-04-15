@@ -70,7 +70,7 @@ export default function NowShowingScreen() {
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
           {/* Back button */}
-          <TouchableOpacity onPress={() => router.back()} style={{ paddingTop: 8, paddingBottom: 4 }}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} style={{ paddingTop: 8, paddingBottom: 4 }}>
             <Text style={{ color: "#6c47ff", fontSize: 16 }}>← Back</Text>
           </TouchableOpacity>
 

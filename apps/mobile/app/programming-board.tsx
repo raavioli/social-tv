@@ -110,7 +110,7 @@ export default function ProgrammingBoardScreen() {
       <SafeAreaView style={styles.safe}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <Text style={styles.backBtn}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.title}>🎛️ Programming Board</Text>
@@ -220,7 +220,7 @@ export default function ProgrammingBoardScreen() {
           </View>
 
           {/* ── SAVE ── */}
-          <Pressable style={styles.saveBtn} onPress={() => router.back()}>
+          <Pressable style={styles.saveBtn} onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
             <LinearGradient colors={["#6c47ff", "#a855f7"]} style={styles.saveBtnGrad}>
               <Text style={styles.saveBtnText}>💾 Save Programming</Text>
             </LinearGradient>

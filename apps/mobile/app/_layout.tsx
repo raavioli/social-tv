@@ -1,16 +1,46 @@
 import { useEffect } from "react";
-import { View } from "react-native";
-import { Stack } from "expo-router";
+import { View, Alert, Platform } from "react-native";
+import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAppStore } from "../src/store/useAppStore";
 import BottomDock from "../src/components/BottomDock";
+
+function useTimeBudgetReminder() {
+  const minutes = useAppStore((s) => s.timeBudgetMinutes);
+  const startedAt = useAppStore((s) => s.budgetStartedAt);
+  const setBudget = useAppStore((s) => s.setTimeBudget);
+  const clearBudget = useAppStore((s) => s.clearTimeBudget);
+
+  useEffect(() => {
+    if (!minutes || minutes <= 0 || !startedAt) return;
+    const elapsed = Date.now() - startedAt;
+    const remaining = minutes * 60_000 - elapsed;
+    if (remaining <= 0) return;
+    const id = setTimeout(() => {
+      const msg = `That's your ${minutes} min. Extend by 5?`;
+      if (Platform.OS === "web") {
+        const extend = globalThis.confirm?.(msg);
+        if (extend) setBudget(5);
+        else { clearBudget(); router.replace("/time-budget" as any); }
+      } else {
+        Alert.alert("Time's up", msg, [
+          { text: "Extend 5 min", onPress: () => setBudget(5) },
+          { text: "Done", style: "cancel", onPress: () => { clearBudget(); router.replace("/time-budget" as any); } },
+        ]);
+      }
+    }, remaining);
+    return () => clearTimeout(id);
+  }, [minutes, startedAt]);
+}
 
 export default function RootLayout() {
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
   const updateSettings = useAppStore((s) => s.updateSettings);
   const addAccount = useAppStore((s) => s.addAccount);
   const reorderCustomChannels = useAppStore((s) => s.reorderCustomChannels);
+
+  useTimeBudgetReminder();
 
   useEffect(() => {
     // Restore persisted state
@@ -40,6 +70,7 @@ export default function RootLayout() {
         <Stack.Screen name="connect" />
         <Stack.Screen name="channel-creator" />
         <Stack.Screen name="programming-board" />
+        <Stack.Screen name="time-budget" />
       </Stack>
       <BottomDock />
     </View>

@@ -55,46 +55,6 @@ export default function DirectorsDeskScreen() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [activeChannelIdx, setActiveChannelIdx] = useState(0);
   const [editMode, setEditMode] = useState(false);
-  const [timeBudget, setTimeBudget] = useState<number | null>(null); // minutes
-  const [budgetStartedAt, setBudgetStartedAt] = useState<number | null>(null);
-
-  const notifyTimeUp = (minutes: number) => {
-    const msg = `That's your ${minutes} min — ${minutes < 5 ? "quick check done." : "wrapping up?"}`;
-    if (Platform.OS === "web") {
-      // Native Alert is unstyled on web; use a confirm() for the extend prompt.
-      const extend = globalThis.confirm?.(msg + "\n\nExtend by 5 min?");
-      if (extend) {
-        setTimeBudget(5);
-        setBudgetStartedAt(Date.now());
-      } else {
-        setTimeBudget(null);
-        setBudgetStartedAt(null);
-      }
-      return;
-    }
-    Alert.alert("Time's up", msg, [
-      { text: "Extend 5 min", onPress: () => { setTimeBudget(5); setBudgetStartedAt(Date.now()); } },
-      { text: "Done", style: "cancel", onPress: () => { setTimeBudget(null); setBudgetStartedAt(null); } },
-    ]);
-  };
-
-  useEffect(() => {
-    if (!timeBudget || timeBudget <= 0 || !budgetStartedAt) return;
-    const ms = timeBudget * 60 * 1000;
-    const id = setTimeout(() => notifyTimeUp(timeBudget), ms);
-    return () => clearTimeout(id);
-  }, [timeBudget, budgetStartedAt]);
-
-  const pickBudget = (m: number) => {
-    const isActive = timeBudget === m;
-    if (isActive) {
-      setTimeBudget(null);
-      setBudgetStartedAt(null);
-    } else {
-      setTimeBudget(m);
-      setBudgetStartedAt(m > 0 ? Date.now() : null);
-    }
-  };
 
   // Time-slot filter — initializes to the currently-live slot and re-syncs every minute.
   const [activeSlotId, setActiveSlotId] = useState<TimeSlotId>(() => getActiveSlot().id);
@@ -189,32 +149,6 @@ export default function DirectorsDeskScreen() {
                 <Text style={styles.presenterChip}>{persona.avatarEmoji}</Text>
               </Pressable>
             </View>
-          </View>
-
-          {/* ── TIME BUDGET ── */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>HOW MUCH TIME DO YOU HAVE?</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.budgetRow}>
-              {[
-                { m: 1,  label: "1 min",  emoji: "⚡" },
-                { m: 5,  label: "5 min",  emoji: "☕" },
-                { m: 15, label: "15 min", emoji: "📺" },
-                { m: 30, label: "30 min", emoji: "🛋️" },
-                { m: 0,  label: "Full",   emoji: "🎬" },
-              ].map(b => {
-                const isActive = timeBudget === b.m;
-                return (
-                  <Pressable
-                    key={b.m}
-                    onPress={() => pickBudget(b.m)}
-                    style={[styles.budgetChip, isActive && styles.budgetChipActive]}
-                  >
-                    <Text style={styles.budgetEmoji}>{b.emoji}</Text>
-                    <Text style={[styles.budgetLabel, isActive && { color: "#fff" }]}>{b.label}</Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
           </View>
 
           {/* ── TILES (iPhone-style grid) ── */}

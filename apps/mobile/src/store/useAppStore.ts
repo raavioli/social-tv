@@ -95,6 +95,12 @@ interface AppState {
   onboardingDone: boolean;
   completeOnboarding: () => void;
 
+  // Time budget (session-scoped; expires on app reload/close)
+  timeBudgetMinutes: number | null;       // 0 = "Full"; null = not set
+  budgetStartedAt: number | null;          // epoch ms
+  setTimeBudget: (minutes: number) => void;
+  clearTimeBudget: () => void;
+
   // Programming
   scheduledShows: ScheduledShow[];
   mutedKeywords: MutedKeyword[];
@@ -220,6 +226,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     AsyncStorage.setItem("onboarding_done", "true");
     set({ onboardingDone: true });
   },
+
+  timeBudgetMinutes: null,
+  budgetStartedAt: null,
+  setTimeBudget: (minutes) => set({ timeBudgetMinutes: minutes, budgetStartedAt: minutes > 0 ? Date.now() : null }),
+  clearTimeBudget: () => set({ timeBudgetMinutes: null, budgetStartedAt: null }),
 
   scheduledShows: [
     { id: "default-morning", formatId: "morning_show", label: "Morning Show", days: [1,2,3,4,5], hour: 8, minute: 0, enabled: true, platformIds: [], maxMinutes: 20, notifyBefore: 5 },

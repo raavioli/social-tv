@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "yarn install --frozen-lockfile && cd apps/mobile && NODE_OPTIONS='--dns-result-order=ipv4first' npx expo export -p web",
+  "buildCommand": "corepack enable && corepack prepare yarn@1.22.22 --activate && yarn install --frozen-lockfile --ignore-engines && cd apps/mobile && npx expo export -p web",
   "outputDirectory": "apps/mobile/dist",
   "installCommand": "echo skip",
   "framework": null,

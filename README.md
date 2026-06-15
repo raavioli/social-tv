@@ -1,6 +1,6 @@
 # 📺 AI TV News
 
-> Your personal AI-powered TV news channel — mobile first, generative visuals, voiced by your chosen host.
+> Your personal AI-powered TV news channel - mobile first, generative visuals, voiced by your chosen host.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 [![CI](https://github.com/your-org/ai-tv-news/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/ai-tv-news/actions)
@@ -9,14 +9,14 @@
 
 ## ✨ Features
 
-- **Personal channel lineup** — pick topics: Tech, Finance, Space, Reddit & more
-- **AI-generated visuals** — DALL-E 3 creates a unique image for every story
-- **AI host narration** — ElevenLabs voices your chosen host (Alex, Maya, Jay, Sam)
-- **Daily morning show** — auto-generated briefing every morning
-- **Save & follow up** — bookmark stories, set reminders, create tasks
-- **Swipeable TV cards** — scroll through stories like a TV remote
-- **Push notifications** — morning alert when your show is ready
-- **100% portable** — Docker Compose backend, Expo mobile app
+- **Personal channel lineup** - pick topics: Tech, Finance, Space, Reddit & more
+- **AI-generated visuals** - DALL-E 3 creates a unique image for every story
+- **AI host narration** - ElevenLabs voices your chosen host (Alex, Maya, Jay, Sam)
+- **Daily morning show** - auto-generated briefing every morning
+- **Save & follow up** - bookmark stories, set reminders, create tasks
+- **Swipeable TV cards** - scroll through stories like a TV remote
+- **Push notifications** - morning alert when your show is ready
+- **100% portable** - Docker Compose backend, Expo mobile app
 
 ---
 
@@ -55,7 +55,7 @@ yarn install
 
 ```bash
 cp .env.example .env
-# Edit .env — all API keys are optional for demo mode
+# Edit .env - all API keys are optional for demo mode
 ```
 
 ### 3. Start the backend
@@ -103,7 +103,7 @@ docker compose down -v
 
 ## 📱 Deployment
 
-### Mobile — Expo EAS Build
+### Mobile - Expo EAS Build
 
 ```bash
 # Install EAS CLI
@@ -119,7 +119,7 @@ eas build --platform ios
 eas build --platform android
 ```
 
-### API — Docker (any cloud)
+### API - Docker (any cloud)
 
 The API Docker image is built and pushed to GitHub Container Registry on every merge to `main`.
 
@@ -141,4 +141,4 @@ docker pull ghcr.io/your-org/ai-tv-news/api:latest
 
 ## 📄 License
 
-[MIT](LICENSE) — free to use, modify, and distribute.
+[MIT](LICENSE) - free to use, modify, and distribute.

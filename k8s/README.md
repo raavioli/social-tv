@@ -1,4 +1,4 @@
-# SocialTV — k3s deployment
+# SocialTV - k3s deployment
 
 Plain k3s Deployments + Services in the `socialtv` namespace. No Knative.
 
